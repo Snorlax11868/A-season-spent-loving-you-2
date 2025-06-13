@@ -84,29 +84,37 @@
     let currentPage = 0;
 
     fetch(docUrl)
-      .then(res => res.text())
-      .then(data => {
-        const parser = new DOMParser();
-        const htmlDoc = parser.parseFromString(data, 'text/html');
-        let text = htmlDoc.body.innerText;
+  .then(res => {
+    console.log("Fetch status:", res.status); // Check HTTP status
+    return res.text();
+  })
+  .then(data => {
+    console.log("Raw fetched HTML (first 300 chars):\n", data.substring(0, 300));
 
-        // Remove unwanted header
-        text = text.replace(/^Published using Google Docs\s*/, '');
+    const parser = new DOMParser();
+    const htmlDoc = parser.parseFromString(data, 'text/html');
+    let text = htmlDoc.body.innerText;
 
-        pages = text.split("===PAGE===");
+    console.log("Extracted innerText (first 300 chars):\n", text.substring(0, 300));
 
-        // Load saved progress
-        const savedPage = parseInt(localStorage.getItem("lastPage"));
-        if (!isNaN(savedPage) && savedPage >= 0 && savedPage < pages.length) {
-          currentPage = savedPage;
-        }
+    // Remove unwanted header
+    text = text.replace(/^Published using Google Docs\s*/, '');
 
-        showPage();
-      })
-      .catch(err => {
-        container.innerText = "Failed to load story.";
-        console.error(err);
-      });
+    pages = text.split("===PAGE===");
+    console.log("Total pages found:", pages.length);
+
+    // Load saved progress
+    const savedPage = parseInt(localStorage.getItem("lastPage"));
+    if (!isNaN(savedPage) && savedPage >= 0 && savedPage < pages.length) {
+      currentPage = savedPage;
+    }
+
+    showPage();
+  })
+  .catch(err => {
+    container.innerText = "Failed to load story.";
+    console.error("Error fetching or parsing doc:", err);
+  });
 
     function showPage() {
       container.classList.remove("visible"); // Reset fade
