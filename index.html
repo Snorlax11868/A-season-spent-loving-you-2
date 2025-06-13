@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -23,104 +23,128 @@
       max-width: 700px;
       margin: 0 auto;
       font-size: 1.2em;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
     }
 
+    .visible {
+      opacity: 1;
+    }
 
-    #continue {
+    #continue, #back {
       display: none;
-      margin: 40px auto 0;
+      margin: 20px auto 0;
       padding: 10px 25px;
-      background-color: #444;
-      color: white;
-      border: none;
       font-size: 1em;
+      border: none;
+      color: white;
       cursor: pointer;
-      display: block;
       text-align: center;
     }
 
-    #back {
-  display: none;
-  margin: 20px auto 0;
-  padding: 10px 25px;
-  background-color: #888;
-  color: white;
-  border: none;
-  font-size: 1em;
-  cursor: pointer;
-  text-align: center;
-}
-
-#back:hover {
-  background-color: #555;
-}
+    #continue {
+      background-color: #444;
+    }
 
     #continue:hover {
       background-color: #222;
+    }
+
+    #back {
+      background-color: #888;
+    }
+
+    #back:hover {
+      background-color: #555;
+    }
+
+    #progress {
+      text-align: center;
+      color: #777;
+      margin-bottom: 20px;
+      font-size: 0.9em;
     }
   </style>
 </head>
 <body>
   <h1>A Season Spent Loving You</h1>
-
-  <div id="story-container">Loading story...</div>
- <button id="back">← Back</button>
- <button id="continue">Continue →</button>
+  <div id="progress"></div>
+  <div id="story-container" class="visible">Loading story...</div>
+  <button id="back">← Back</button>
+  <button id="continue">Continue →</button>
 
   <script>
-    // Replace this with your own PUBLISHED Google Doc link
-    const docUrl ="https://docs.google.com/document/d/e/2PACX-1vTqZBPA3iIzbIUmz-NTlIRPVxPzbh3QhcrmsyFGOBnjMmVymXiEJIkkViykoKdJag69HVtM8P4t36zW/pub";
+    const docUrl = "https://docs.google.com/document/d/e/2PACX-1vTqZBPA3iIzbIUmz-NTlIRPVxPzbh3QhcrmsyFGOBnjMmVymXiEJIkkViykoKdJag69HVtM8P4t36zW/pub";
 
-   const container = document.getElementById('story-container');
-const button = document.getElementById('continue');
-const backButton = document.getElementById('back');
+    const container = document.getElementById('story-container');
+    const button = document.getElementById('continue');
+    const backButton = document.getElementById('back');
 
-let pages = [];
-let currentPage = 0;
+    let pages = [];
+    let currentPage = 0;
 
-fetch(docUrl)
-  .then(res => res.text())
-  .then(data => {
-    const parser = new DOMParser();
-    const htmlDoc = parser.parseFromString(data, 'text/html');
-    let text = htmlDoc.body.innerText;
+    fetch(docUrl)
+      .then(res => res.text())
+      .then(data => {
+        const parser = new DOMParser();
+        const htmlDoc = parser.parseFromString(data, 'text/html');
+        let text = htmlDoc.body.innerText;
 
-    // Remove unwanted header like "Published using Google Docs"
-    text = text.replace(/^Published using Google Docs\s*/, '');
+        // Remove unwanted header
+        text = text.replace(/^Published using Google Docs\s*/, '');
 
-    pages = text.split("===PAGE===");
-    showPage();
-  })
-  .catch(err => {
-    container.innerText = "Failed to load story.";
-    console.error(err);
-  });
+        pages = text.split("===PAGE===");
 
-function showPage() {
-  container.innerText = pages[currentPage].trim();
+        // Load saved progress
+        const savedPage = parseInt(localStorage.getItem("lastPage"));
+        if (!isNaN(savedPage) && savedPage >= 0 && savedPage < pages.length) {
+          currentPage = savedPage;
+        }
 
-  // Show or hide "Continue"
-  button.style.display = (currentPage < pages.length - 1) ? "block" : "none";
+        showPage();
+      })
+      .catch(err => {
+        container.innerText = "Failed to load story.";
+        console.error(err);
+      });
 
-  // Show or hide "Back"
-  backButton.style.display = (currentPage > 0) ? "block" : "none";
-}
+    function showPage() {
+      container.classList.remove("visible"); // Reset fade
 
-// NEXT page
-button.addEventListener('click', () => {
-  if (currentPage < pages.length - 1) {
-    currentPage++;
-    showPage();
-  }
-});
+      setTimeout(() => {
+        container.innerText = pages[currentPage].trim();
+        container.classList.add("visible");
 
-// PREVIOUS page
-backButton.addEventListener('click', () => {
-  if (currentPage > 0) {
-    currentPage--;
-    showPage();
-  }
-});
+        // Show/hide buttons
+        button.style.display = (currentPage < pages.length - 1) ? "block" : "none";
+        backButton.style.display = (currentPage > 0) ? "block" : "none";
+
+        // Update progress
+        document.getElementById("progress").innerText =
+          `Page ${currentPage + 1} of ${pages.length}`;
+
+        // Save progress
+        localStorage.setItem("lastPage", currentPage);
+      }, 100); // Slight delay for fade effect
+    }
+
+    // NEXT
+    button.addEventListener('click', () => {
+      if (currentPage < pages.length - 1) {
+        container.classList.remove("visible"); // Fade out
+        currentPage++;
+        showPage();
+      }
+    });
+
+    // BACK
+    backButton.addEventListener('click', () => {
+      if (currentPage > 0) {
+        container.classList.remove("visible"); // Fade out
+        currentPage--;
+        showPage();
+      }
+    });
   </script>
 </body>
 </html>
