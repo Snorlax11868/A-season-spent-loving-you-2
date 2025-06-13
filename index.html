@@ -83,7 +83,11 @@ fetch(docUrl)
   .then(data => {
     const parser = new DOMParser();
     const htmlDoc = parser.parseFromString(data, 'text/html');
-    const text = htmlDoc.body.innerText;
+    let text = htmlDoc.body.innerText;
+
+    // Remove unwanted header like "Published using Google Docs"
+    text = text.replace(/^Published using Google Docs\s*/, '');
+
     pages = text.split("===PAGE===");
     showPage();
   })
