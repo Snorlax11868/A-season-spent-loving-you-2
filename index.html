@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -25,6 +25,7 @@
       font-size: 1.2em;
     }
 
+
     #continue {
       display: none;
       margin: 40px auto 0;
@@ -34,8 +35,25 @@
       border: none;
       font-size: 1em;
       cursor: pointer;
+      display: block;
       text-align: center;
     }
+
+    #back {
+  display: none;
+  margin: 20px auto 0;
+  padding: 10px 25px;
+  background-color: #888;
+  color: white;
+  border: none;
+  font-size: 1em;
+  cursor: pointer;
+  text-align: center;
+}
+
+#back:hover {
+  background-color: #555;
+}
 
     #continue:hover {
       background-color: #222;
@@ -46,47 +64,59 @@
   <h1>A Season Spent Loving You</h1>
 
   <div id="story-container">Loading story...</div>
-  <button id="continue">Continue →</button>
+ <button id="back">← Back</button>
+ <button id="continue">Continue →</button>
 
   <script>
-    // Your published Google Doc link
-    const docUrl = "https://docs.google.com/document/d/e/2PACX-1vTqZBPA3iIzbIUmz-NTlIRPVxPzbh3QhcrmsyFGOBnjMmVymXiEJIkkViykoKdJag69HVtM8P4t36zW/pub";
+    // Replace this with your own PUBLISHED Google Doc link
+    const docUrl ="https://docs.google.com/document/d/e/2PACX-1vTqZBPA3iIzbIUmz-NTlIRPVxPzbh3QhcrmsyFGOBnjMmVymXiEJIkkViykoKdJag69HVtM8P4t36zW/pub";
 
-    const container = document.getElementById('story-container');
-    const button = document.getElementById('continue');
+   const container = document.getElementById('story-container');
+const button = document.getElementById('continue');
+const backButton = document.getElementById('back');
 
-    let pages = [];
-    let currentPage = 0;
+let pages = [];
+let currentPage = 0;
 
-    fetch(docUrl)
-      .then(res => res.text())
-      .then(data => {
-        const parser = new DOMParser();
-        const htmlDoc = parser.parseFromString(data, 'text/html');
-        const text = htmlDoc.body.innerText;
-        pages = text.split("===PAGE===");
-        showPage();
-      })
-      .catch(err => {
-        container.innerText = "Failed to load story.";
-        console.error(err);
-      });
+fetch(docUrl)
+  .then(res => res.text())
+  .then(data => {
+    const parser = new DOMParser();
+    const htmlDoc = parser.parseFromString(data, 'text/html');
+    const text = htmlDoc.body.innerText;
+    pages = text.split("===PAGE===");
+    showPage();
+  })
+  .catch(err => {
+    container.innerText = "Failed to load story.";
+    console.error(err);
+  });
 
-    function showPage() {
-      container.innerText = pages[currentPage].trim();
-      if (currentPage < pages.length - 1) {
-        button.style.display = "block";
-      } else {
-        button.style.display = "none";
-      }
-    }
+function showPage() {
+  container.innerText = pages[currentPage].trim();
 
-    button.addEventListener('click', () => {
-      if (currentPage < pages.length - 1) {
-        currentPage++;
-        showPage();
-      }
-    });
+  // Show or hide "Continue"
+  button.style.display = (currentPage < pages.length - 1) ? "block" : "none";
+
+  // Show or hide "Back"
+  backButton.style.display = (currentPage > 0) ? "block" : "none";
+}
+
+// NEXT page
+button.addEventListener('click', () => {
+  if (currentPage < pages.length - 1) {
+    currentPage++;
+    showPage();
+  }
+});
+
+// PREVIOUS page
+backButton.addEventListener('click', () => {
+  if (currentPage > 0) {
+    currentPage--;
+    showPage();
+  }
+});
   </script>
 </body>
 </html>
