@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>A Season Spent Loving You</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Georgia, serif;
+      background: #f9f6f3;
+      color: #333;
+      padding: 40px;
+      line-height: 1.6;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    #story-container {
+      white-space: pre-wrap;
+      max-width: 700px;
+      margin: 0 auto;
+      font-size: 1.2em;
+    }
+
+    #continue {
+      display: none;
+      margin: 40px auto 0;
+      padding: 10px 25px;
+      background-color: #444;
+      color: white;
+      border: none;
+      font-size: 1em;
+      cursor: pointer;
+      display: block;
+      text-align: center;
+    }
+
+    #continue:hover {
+      background-color: #222;
+    }
+  </style>
+</head>
+<body>
+  <h1>A Season Spent Loving You</h1>
+
+  <div id="story-container">Loading story...</div>
+  <button id="continue">Continue →</button>
+
+  <script>
+    // Replace this with your own PUBLISHED Google Doc link
+    const docUrl =https://docs.google.com/document/d/e/2PACX-1vTqZBPA3iIzbIUmz-NTlIRPVxPzbh3QhcrmsyFGOBnjMmVymXiEJIkkViykoKdJag69HVtM8P4t36zW/pub
+
+    const container = document.getElementById('story-container');
+    const button = document.getElementById('continue');
+
+    let pages = [];
+    let currentPage = 0;
+
+    fetch(docUrl)
+      .then(res => res.text())
+      .then(data => {
+        const parser = new DOMParser();
+        const htmlDoc = parser.parseFromString(data, 'text/html');
+        const text = htmlDoc.body.innerText;
+        pages = text.split("===PAGE===");
+        showPage();
+      })
+      .catch(err => {
+        container.innerText = "Failed to load story.";
+        console.error(err);
+      });
+
+    function showPage() {
+      container.innerText = pages[currentPage].trim();
+      if (currentPage < pages.length - 1) {
+        button.style.display = "block";
+      } else {
+        button.style.display = "none";
+      }
+    }
+
+    button.addEventListener('click', () => {
+      if (currentPage < pages.length - 1) {
+        currentPage++;
+        showPage();
+      }
+    });
+  </script>
+</body>
+</html>
