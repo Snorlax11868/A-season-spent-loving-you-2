@@ -31,15 +31,21 @@
       opacity: 1;
     }
 
+    #progress {
+      text-align: center;
+      color: #777;
+      margin-bottom: 20px;
+      font-size: 0.9em;
+    }
+
     #continue, #back {
       display: none;
-      margin: 20px auto 0;
+      margin: 20px auto;
       padding: 10px 25px;
       font-size: 1em;
       border: none;
       color: white;
       cursor: pointer;
-      text-align: center;
     }
 
     #continue {
@@ -58,11 +64,50 @@
       background-color: #555;
     }
 
-    #progress {
+    #music-player {
       text-align: center;
-      color: #777;
-      margin-bottom: 20px;
+      margin-bottom: 40px;
+    }
+
+    #now-playing {
+      font-size: 1em;
+      margin-bottom: 10px;
+      color: #444;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 1; }
+      100% { opacity: 0.6; }
+    }
+
+    #playlist button {
+      margin: 5px;
+      padding: 6px 12px;
       font-size: 0.9em;
+      cursor: pointer;
+      background-color: #eee;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    #playlist button:hover {
+      background-color: #ddd;
+    }
+
+    #mute-btn {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      padding: 8px 14px;
+      font-size: 0.9em;
+      background-color: #666;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      z-index: 1000;
     }
   </style>
 </head>
@@ -70,88 +115,121 @@
   <h1>A Season Spent Loving You</h1>
   <div id="progress"></div>
   <div id="story-container" class="visible">Loading story...</div>
+
+  <div id="music-player">
+    <div id="now-playing">Now Playing: <span id="current-song">None</span></div>
+    <audio id="audio" controls autoplay></audio>
+    <div id="playlist"></div>
+  </div>
+
   <button id="back">← Back</button>
   <button id="continue">Continue →</button>
+  <button id="mute-btn">🔊</button>
 
   <script>
+    // Google Doc Fetch
     const docUrl = "https://docs.google.com/document/d/e/2PACX-1vTqZBPA3iIzbIUmz-NTlIRPVxPzbh3QhcrmsyFGOBnjMmVymXiEJIkkViykoKdJag69HVtM8P4t36zW/pub";
-
     const container = document.getElementById('story-container');
     const button = document.getElementById('continue');
     const backButton = document.getElementById('back');
-
     let pages = [];
     let currentPage = 0;
 
     fetch(docUrl)
-  .then(res => {
-    console.log("Fetch status:", res.status); // Check HTTP status
-    return res.text();
-  })
-  .then(data => {
-    console.log("Raw fetched HTML (first 300 chars):\n", data.substring(0, 300));
-
-    const parser = new DOMParser();
-    const htmlDoc = parser.parseFromString(data, 'text/html');
-    let text = htmlDoc.body.innerText;
-
-    console.log("Extracted innerText (first 300 chars):\n", text.substring(0, 300));
-
-    // Remove unwanted header
-    text = text.replace(/^Published using Google Docs\s*/, '');
-
-    pages = text.split("===PAGE===");
-    console.log("Total pages found:", pages.length);
-
-    // Load saved progress
-    const savedPage = parseInt(localStorage.getItem("lastPage"));
-    if (!isNaN(savedPage) && savedPage >= 0 && savedPage < pages.length) {
-      currentPage = savedPage;
-    }
-
-    showPage();
-  })
-  .catch(err => {
-    container.innerText = "Failed to load story.";
-    console.error("Error fetching or parsing doc:", err);
-  });
+      .then(res => res.text())
+      .then(data => {
+        const parser = new DOMParser();
+        const htmlDoc = parser.parseFromString(data, 'text/html');
+        let text = htmlDoc.body.innerText;
+        text = text.replace(/^Published using Google Docs\s*/, '');
+        pages = text.split("===PAGE===");
+        const savedPage = parseInt(localStorage.getItem("lastPage"));
+        if (!isNaN(savedPage) && savedPage >= 0 && savedPage < pages.length) {
+          currentPage = savedPage;
+        }
+        showPage();
+      })
+      .catch(err => {
+        container.innerText = "Failed to load story.";
+        console.error(err);
+      });
 
     function showPage() {
-      container.classList.remove("visible"); // Reset fade
-
+      container.classList.remove("visible");
       setTimeout(() => {
         container.innerText = pages[currentPage].trim();
         container.classList.add("visible");
-
-        // Show/hide buttons
         button.style.display = (currentPage < pages.length - 1) ? "block" : "none";
         backButton.style.display = (currentPage > 0) ? "block" : "none";
-
-        // Update progress
-        document.getElementById("progress").innerText =
-          `Page ${currentPage + 1} of ${pages.length}`;
-
-        // Save progress
+        document.getElementById("progress").innerText = `Page ${currentPage + 1} of ${pages.length}`;
         localStorage.setItem("lastPage", currentPage);
-      }, 100); // Slight delay for fade effect
+      }, 100);
     }
 
-    // NEXT
     button.addEventListener('click', () => {
       if (currentPage < pages.length - 1) {
-        container.classList.remove("visible"); // Fade out
+        container.classList.remove("visible");
         currentPage++;
         showPage();
       }
     });
 
-    // BACK
     backButton.addEventListener('click', () => {
       if (currentPage > 0) {
-        container.classList.remove("visible"); // Fade out
+        container.classList.remove("visible");
         currentPage--;
         showPage();
       }
+    });
+
+    // MUSIC
+    const playlist = [
+      { title: "Let You Break My Heart Again", src: "music/let_you_break_my_heart_again.mp3" },
+      { title: "Mia & Sebastian’s Theme", src: "music/hauser_mia_and_sebastian_theme.mp3" },
+      { title: "Merry Go Round of Life", src: "music/merry_go_round_of_life.mp3" }
+    ];
+
+    const audio = document.getElementById('audio');
+    const currentSong = document.getElementById('current-song');
+    const playlistDiv = document.getElementById('playlist');
+    const muteBtn = document.getElementById('mute-btn');
+
+    let currentTrack = 0;
+    let isMuted = false;
+
+    function loadSong(index) {
+      audio.src = playlist[index].src;
+      currentSong.textContent = playlist[index].title;
+      audio.play();
+    }
+
+    // Autoplay next
+    audio.addEventListener('ended', () => {
+      currentTrack = (currentTrack + 1) % playlist.length;
+      loadSong(currentTrack);
+    });
+
+    // Buttons for playlist
+    playlist.forEach((song, index) => {
+      const btn = document.createElement('button');
+      btn.textContent = song.title;
+      btn.onclick = () => {
+        currentTrack = index;
+        loadSong(currentTrack);
+      };
+      playlistDiv.appendChild(btn);
+    });
+
+    // Mute toggle
+    muteBtn.addEventListener('click', () => {
+      isMuted = !isMuted;
+      audio.muted = isMuted;
+      muteBtn.textContent = isMuted ? "🔇" : "🔊";
+    });
+
+    // Start first song on load
+    window.addEventListener("load", () => {
+      loadSong(currentTrack);
     });
   </script>
 </body>
