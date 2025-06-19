@@ -152,7 +152,10 @@
         let text = htmlDoc.body.innerText;
 
         text = text.replace(/^Published using Google Docs\s*/, '');
-        pages = text.split("===PAGE===");
+        pages = text.includes("===PAGE===") ? text.split("===PAGE===") : [text];
+
+        console.log("Pages loaded:", pages.length);
+        console.log("First page:", pages[0].substring(0, 300));
 
         const savedPage = parseInt(localStorage.getItem("lastPage"));
         if (!isNaN(savedPage) && savedPage >= 0 && savedPage < pages.length) {
