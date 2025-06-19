@@ -5,24 +5,35 @@
   <title>A Season Spent Loving You</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
-      font-family: Georgia, serif;
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
       background: #f9f6f3;
+      font-family: Georgia, serif;
       color: #333;
-      padding: 40px;
       line-height: 1.6;
+      overflow-x: hidden;
     }
 
     h1 {
       text-align: center;
-      margin-bottom: 20px;
+      margin: 30px 0 20px;
+    }
+
+    #progress {
+      text-align: center;
+      color: #777;
+      font-size: 0.9em;
+      margin-bottom: 10px;
     }
 
     #story-container {
       white-space: pre-wrap;
       max-width: 700px;
-      margin: 0 auto;
+      margin: 0 auto 40px;
       font-size: 1.2em;
+      padding: 0 20px;
       opacity: 0;
       transition: opacity 0.5s ease-in-out;
     }
@@ -33,7 +44,7 @@
 
     #continue, #back {
       display: none;
-      margin: 20px auto;
+      margin: 10px auto;
       padding: 10px 25px;
       font-size: 1em;
       border: none;
@@ -56,13 +67,6 @@
 
     #back:hover {
       background-color: #555;
-    }
-
-    #progress {
-      text-align: center;
-      color: #777;
-      margin-bottom: 20px;
-      font-size: 0.9em;
     }
 
     #music-player {
@@ -109,30 +113,30 @@
       border-radius: 5px;
       z-index: 1000;
     }
+
+    audio {
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
   <h1>A Season Spent Loving You</h1>
   <div id="progress"></div>
+  <div id="story-container">Loading story...</div>
 
-  <div id="story-container" class="visible">Loading story...</div>
+  <button id="back">&larr; Back</button>
+  <button id="continue">Continue &rarr;</button>
 
-  <button id="back">← Back</button>
-  <button id="continue">Continue →</button>
-
-  <!-- Music Player Section -->
   <div id="music-player">
     <div id="now-playing">Now Playing: <span id="current-song">None</span></div>
     <audio id="audio" controls autoplay></audio>
     <div id="playlist"></div>
   </div>
 
-  <!-- Mute Button -->
   <button id="mute-btn">🔊</button>
 
   <script>
     const docUrl = "https://docs.google.com/document/d/e/2PACX-1vTqZBPA3iIzbIUmz-NTlIRPVxPzbh3QhcrmsyFGOBnjMmVymXiEJIkkViykoKdJag69HVtM8P4t36zW/pub";
-
     const container = document.getElementById('story-container');
     const button = document.getElementById('continue');
     const backButton = document.getElementById('back');
@@ -147,7 +151,6 @@
         const htmlDoc = parser.parseFromString(data, 'text/html');
         let text = htmlDoc.body.innerText;
 
-        // Clean up unwanted headers
         text = text.replace(/^Published using Google Docs\s*/, '');
         pages = text.split("===PAGE===");
 
@@ -196,7 +199,6 @@
       }
     });
 
-    // ========== Music Player ==========
     const playlist = [
       { title: "Let You Break My Heart Again", src: "Music/let_you_break_my_heart_again.mp3" },
       { title: "Mia and Sebastian’s Theme", src: "Music/hauser_mia_and_sebastian_theme.mp3" },
@@ -207,15 +209,13 @@
     const currentSong = document.getElementById('current-song');
     const playlistDiv = document.getElementById('playlist');
     const muteBtn = document.getElementById('mute-btn');
-
     let currentTrack = 0;
+    let isMuted = false;
 
     function loadSong(index) {
       audio.src = playlist[index].src;
       currentSong.textContent = playlist[index].title;
-      audio.play().catch(err => {
-        console.log("Autoplay blocked. Waiting for user interaction.");
-      });
+      audio.play();
     }
 
     audio.addEventListener('ended', () => {
@@ -234,11 +234,12 @@
     });
 
     muteBtn.addEventListener('click', () => {
-      audio.muted = !audio.muted;
-      muteBtn.textContent = audio.muted ? "🔇" : "🔊";
+      isMuted = !isMuted;
+      audio.muted = isMuted;
+      muteBtn.innerText = isMuted ? "🔇" : "🔊";
     });
 
-    window.addEventListener('load', () => {
+    window.addEventListener("load", () => {
       loadSong(currentTrack);
     });
   </script>
