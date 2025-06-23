@@ -149,10 +149,18 @@
       .then(data => {
         const parser = new DOMParser();
         const htmlDoc = parser.parseFromString(data, 'text/html');
-        let text = htmlDoc.body.textContent || htmlDoc.body.innerText || "";
+        let text = htmlDoc.body.innerText;
 
-        text = text.replace(/^Published using Google Docs\s*/, '').trim();
+        text = text.replace(/^Published using Google Docs\s*/, '');
         pages = text.includes("===PAGE===") ? text.split("===PAGE===") : [text];
+
+        // Trim trailing blank pages
+        while (pages.length > 0 && pages[pages.length - 1].trim() === "") {
+          pages.pop();
+        }
+
+        console.log("Pages loaded:", pages.length);
+        console.log("First page:", pages[0].substring(0, 300));
 
         const savedPage = parseInt(localStorage.getItem("lastPage"));
         if (!isNaN(savedPage) && savedPage >= 0 && savedPage < pages.length) {
@@ -162,11 +170,16 @@
         showPage();
       })
       .catch(err => {
-        container.innerText = "Failed to load story. Please check the console.";
-        console.error("Error loading document:", err);
+        container.innerText = "Failed to load story.";
+        console.error(err);
       });
 
     function showPage() {
+      // Skip blank pages
+      while (pages[currentPage].trim() === "" && currentPage < pages.length - 1) {
+        currentPage++;
+      }
+
       container.classList.remove("visible");
 
       setTimeout(() => {
@@ -185,7 +198,6 @@
 
     button.addEventListener('click', () => {
       if (currentPage < pages.length - 1) {
-        container.classList.remove("visible");
         currentPage++;
         showPage();
       }
@@ -193,7 +205,6 @@
 
     backButton.addEventListener('click', () => {
       if (currentPage > 0) {
-        container.classList.remove("visible");
         currentPage--;
         showPage();
       }
