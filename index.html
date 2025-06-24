@@ -7,128 +7,131 @@
   <link rel="icon" href="data:,"> <!-- Prevent 404 favicon.ico -->
 
   <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      background: #f9f6f3;
-      font-family: Georgia, serif;
-      color: #333;
-      line-height: 1.6;
-      overflow-x: hidden;
-    }
+   <style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: #f9f6f3;
+    font-family: Georgia, serif;
+    color: #111;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
 
-    h1 {
-      text-align: center;
-      margin: 30px 0 20px;
-    }
+  h1 {
+    text-align: center;
+    margin: 30px 0 20px;
+  }
 
-    #progress {
-      text-align: center;
-      color: #777;
-      font-size: 0.9em;
-      margin-bottom: 10px;
-    }
+  #progress {
+    text-align: center;
+    color: #777;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+  }
 
-    #story-container {
-      white-space: pre-wrap;
-      max-width: 700px;
-      margin: 0 auto 40px;
-      font-size: 1.2em;
-      padding: 20px;
-      background: white;
-      color: #111 !important;
-      opacity: 0;
-      transition: opacity 0.5s ease-in-out;
-      min-height: 300px;
-      z-index: 10;
-      position: relative;
-    }
+  #story-container {
+    white-space: pre-wrap;
+    max-width: 700px;
+    margin: 0 auto 40px;
+    font-size: 1.2em;
+    padding: 20px;
+    background: #fff;             /* Ensure white background */
+    color: #111 !important;       /* Ensure black text */
+    opacity: 1 !important;        /* Force visibility */
+    transition: opacity 0.5s ease-in-out;
+    min-height: 300px;
+    z-index: 10;
+    position: relative;
+    border-radius: 8px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+  }
 
-    .visible {
-      opacity: 1;
-    }
+  .visible {
+    opacity: 1 !important;
+  }
 
-    #continue, #back {
-      display: none;
-      margin: 10px auto;
-      padding: 10px 25px;
-      font-size: 1em;
-      border: none;
-      color: white;
-      cursor: pointer;
-    }
+  #continue, #back {
+    display: none;
+    margin: 10px auto;
+    padding: 10px 25px;
+    font-size: 1em;
+    border: none;
+    color: white;
+    cursor: pointer;
+  }
 
-    #continue {
-      background-color: #444;
-    }
+  #continue {
+    background-color: #444;
+  }
 
-    #continue:hover {
-      background-color: #222;
-    }
+  #continue:hover {
+    background-color: #222;
+  }
 
-    #back {
-      background-color: #888;
-    }
+  #back {
+    background-color: #888;
+  }
 
-    #back:hover {
-      background-color: #555;
-    }
+  #back:hover {
+    background-color: #555;
+  }
 
-    #music-player {
-      text-align: center;
-      margin-bottom: 30px;
-    }
+  #music-player {
+    text-align: center;
+    margin-bottom: 30px;
+  }
 
-    #now-playing {
-      font-size: 1em;
-      margin-bottom: 10px;
-      color: #444;
-      animation: pulse 2s infinite;
-    }
+  #now-playing {
+    font-size: 1em;
+    margin-bottom: 10px;
+    color: #444;
+    animation: pulse 2s infinite;
+  }
 
-    @keyframes pulse {
-      0% { opacity: 0.6; }
-      50% { opacity: 1; }
-      100% { opacity: 0.6; }
-    }
+  @keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+  }
 
-    #playlist button {
-      margin: 5px;
-      padding: 6px 12px;
-      font-size: 0.9em;
-      cursor: pointer;
-      background-color: #eee;
-      border: 1px solid #ccc;
-    }
+  #playlist button {
+    margin: 5px;
+    padding: 6px 12px;
+    font-size: 0.9em;
+    cursor: pointer;
+    background-color: #eee;
+    border: 1px solid #ccc;
+  }
 
-    #playlist button:hover {
-      background-color: #ddd;
-    }
+  #playlist button:hover {
+    background-color: #ddd;
+  }
 
-    #mute-btn {
-      position: fixed;
-      top: 15px;
-      right: 15px;
-      padding: 8px 14px;
-      font-size: 0.9em;
-      background-color: #666;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-      z-index: 1000;
-    }
+  #mute-btn {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    padding: 8px 14px;
+    font-size: 0.9em;
+    background-color: #666;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    z-index: 1000;
+  }
 
-    #page-selector {
-      text-align: center;
-      margin-bottom: 20px;
-    }
+  #page-selector {
+    text-align: center;
+    margin-bottom: 20px;
+  }
 
-    audio {
-      margin-bottom: 10px;
-    }
-  </style>
+  audio {
+    margin-bottom: 10px;
+  }
+</style>
 </head>
 <body>
   <h1>A Season Spent Loving You</h1>
