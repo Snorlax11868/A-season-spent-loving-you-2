@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>A Season Spent Loving You</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     html, body {
       height: 100%;
@@ -11,14 +11,14 @@
       padding: 0;
       background: #f9f6f3;
       font-family: Georgia, serif;
-      color: #333;
+      color: #222;
       line-height: 1.6;
       overflow-x: hidden;
     }
 
     h1 {
       text-align: center;
-      margin: 30px 0 20px;
+      margin: 30px 0 10px;
     }
 
     #progress {
@@ -31,11 +31,12 @@
     #story-container {
       white-space: pre-wrap;
       max-width: 700px;
-      margin: 0 auto 40px;
+      margin: 0 auto;
       font-size: 1.2em;
-      padding: 0 20px;
+      padding: 0 20px 40px;
       opacity: 0;
       transition: opacity 0.5s ease-in-out;
+      min-height: 200px;
     }
 
     .visible {
@@ -44,29 +45,28 @@
 
     #continue, #back {
       display: none;
-      margin: 10px auto;
+      margin: 10px;
       padding: 10px 25px;
       font-size: 1em;
       border: none;
       color: white;
       cursor: pointer;
+    }
+
+    #continue { background-color: #444; }
+    #back { background-color: #888; }
+
+    #continue:hover { background-color: #222; }
+    #back:hover { background-color: #555; }
+
+    #page-select-container {
       text-align: center;
+      margin: 10px 0;
     }
 
-    #continue {
-      background-color: #444;
-    }
-
-    #continue:hover {
-      background-color: #222;
-    }
-
-    #back {
-      background-color: #888;
-    }
-
-    #back:hover {
-      background-color: #555;
+    #page-select {
+      padding: 6px;
+      font-size: 1em;
     }
 
     #music-player {
@@ -122,10 +122,18 @@
 <body>
   <h1>A Season Spent Loving You</h1>
   <div id="progress"></div>
+
+  <div id="page-select-container">
+    <label for="page-select">Jump to page:</label>
+    <select id="page-select"></select>
+  </div>
+
   <div id="story-container">Loading story...</div>
 
-  <button id="back">&larr; Back</button>
-  <button id="continue">Continue &rarr;</button>
+  <div style="text-align:center;">
+    <button id="back">&larr; Back</button>
+    <button id="continue">Continue &rarr;</button>
+  </div>
 
   <div id="music-player">
     <div id="now-playing">Now Playing: <span id="current-song">None</span></div>
@@ -140,6 +148,8 @@
     const container = document.getElementById('story-container');
     const button = document.getElementById('continue');
     const backButton = document.getElementById('back');
+    const pageSelect = document.getElementById('page-select');
+    const progress = document.getElementById('progress');
 
     let pages = [];
     let currentPage = 0;
@@ -151,22 +161,23 @@
         const htmlDoc = parser.parseFromString(data, 'text/html');
         let text = htmlDoc.body.innerText;
 
-        text = text.replace(/^Published using Google Docs\s*/, '');
+        text = text.replace(/^Published using Google Docs\s*/, '').trim();
         pages = text.includes("===PAGE===") ? text.split("===PAGE===") : [text];
+        pages = pages.map(p => p.trim()).filter(p => p !== "");
 
-        // Trim trailing blank pages
-        while (pages.length > 0 && pages[pages.length - 1].trim() === "") {
-          pages.pop();
-        }
-
-        console.log("Pages loaded:", pages.length);
-        console.log("First page:", pages[0].substring(0, 300));
+        pages.forEach((_, i) => {
+          const option = document.createElement("option");
+          option.value = i;
+          option.text = `Page ${i + 1}`;
+          pageSelect.appendChild(option);
+        });
 
         const savedPage = parseInt(localStorage.getItem("lastPage"));
         if (!isNaN(savedPage) && savedPage >= 0 && savedPage < pages.length) {
           currentPage = savedPage;
         }
 
+        pageSelect.value = currentPage;
         showPage();
       })
       .catch(err => {
@@ -175,41 +186,45 @@
       });
 
     function showPage() {
-      // Skip blank pages
-      while (pages[currentPage].trim() === "" && currentPage < pages.length - 1) {
+      while (pages[currentPage]?.trim() === "" && currentPage < pages.length - 1) {
         currentPage++;
       }
 
       container.classList.remove("visible");
 
       setTimeout(() => {
-        container.innerText = pages[currentPage].trim();
+        container.innerText = pages[currentPage];
         container.classList.add("visible");
 
-        button.style.display = (currentPage < pages.length - 1) ? "block" : "none";
-        backButton.style.display = (currentPage > 0) ? "block" : "none";
+        button.style.display = (currentPage < pages.length - 1) ? "inline-block" : "none";
+        backButton.style.display = (currentPage > 0) ? "inline-block" : "none";
 
-        document.getElementById("progress").innerText =
-          `Page ${currentPage + 1} of ${pages.length}`;
-
+        progress.innerText = `Page ${currentPage + 1} of ${pages.length}`;
+        pageSelect.value = currentPage;
         localStorage.setItem("lastPage", currentPage);
       }, 100);
     }
 
-    button.addEventListener('click', () => {
+    button.onclick = () => {
       if (currentPage < pages.length - 1) {
         currentPage++;
         showPage();
       }
-    });
+    };
 
-    backButton.addEventListener('click', () => {
+    backButton.onclick = () => {
       if (currentPage > 0) {
         currentPage--;
         showPage();
       }
-    });
+    };
 
+    pageSelect.onchange = () => {
+      currentPage = parseInt(pageSelect.value);
+      showPage();
+    };
+
+    // Music Section
     const playlist = [
       { title: "Let You Break My Heart Again", src: "Music/let_you_break_my_heart_again.mp3" },
       { title: "Mia and Sebastian’s Theme", src: "Music/hauser_mia_and_sebastian_theme.mp3" },
@@ -226,7 +241,7 @@
     function loadSong(index) {
       audio.src = playlist[index].src;
       currentSong.textContent = playlist[index].title;
-      audio.play();
+      audio.play().catch(() => {}); // prevent autoplay errors
     }
 
     audio.addEventListener('ended', () => {
@@ -239,20 +254,20 @@
       btn.textContent = song.title;
       btn.onclick = () => {
         currentTrack = index;
-        loadSong(currentTrack);
+        loadSong(index);
       };
       playlistDiv.appendChild(btn);
     });
 
-    muteBtn.addEventListener('click', () => {
+    muteBtn.onclick = () => {
       isMuted = !isMuted;
       audio.muted = isMuted;
       muteBtn.innerText = isMuted ? "🔇" : "🔊";
-    });
+    };
 
-    window.addEventListener("load", () => {
+    window.onload = () => {
       loadSong(currentTrack);
-    });
+    };
   </script>
 </body>
 </html>
