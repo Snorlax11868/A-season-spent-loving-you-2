@@ -1,30 +1,116 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>A Season Spent Loving You</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:,">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: #f9f6f3;
+      font-family: Georgia, serif;
+      color: #111;
+      line-height: 1.6;
+    }
+
+    body.dark-mode {
+      background: #1e1e1e;
+      color: #eaeaea;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 30px 0 20px;
+    }
+
+    #progress, #page-selector {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    #story-container {
+      white-space: pre-wrap;
+      max-width: 700px;
+      margin: 0 auto 20px;
+      font-size: 1.2em;
+      padding: 20px;
+      background: #fff;
+      color: #111;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+      transition: background 0.3s, color 0.3s;
+      min-height: 300px;
+    }
+
+    body.dark-mode #story-container {
+      background: #2e2e2e;
+      color: #eaeaea;
+    }
+
+    #controls {
+      text-align: center;
+      margin: 15px 0;
+    }
+
+    button, select {
+      margin: 5px;
+      padding: 8px 16px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+
+    #music-player {
+      text-align: center;
+      margin: 30px 0;
+    }
+
+    #now-playing {
+      font-size: 1em;
+      margin-bottom: 10px;
+      animation: pulse 2s infinite;
+      color: #444;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    #playlist button {
+      margin: 4px;
+      padding: 6px 12px;
+      font-size: 0.9em;
+      background-color: #eee;
+      border: 1px solid #ccc;
+    }
+
+    body.dark-mode #playlist button {
+      background-color: #444;
+      color: white;
+    }
+  </style>
+</head>
 <body>
   <h1>A Season Spent Loving You</h1>
   <div id="progress"></div>
-
   <div id="page-selector">
     Jump to page:
     <select id="page-select"></select>
   </div>
 
-  <div style="text-align: center; margin-bottom: 10px;">
-    <input id="search" type="text" placeholder="Search story..." />
-    <button onclick="searchText()">🔍</button>
-  </div>
-
-  <div style="text-align: center; margin-bottom: 10px;">
-    <label>Text size:
-      <input id="font-size" type="range" min="14" max="24" step="1" value="18">
-    </label>
-    <button id="toggle-font">Toggle Font</button>
-    <button id="dark-mode-toggle">🌓</button>
-  </div>
-
   <div id="story-container">Loading story...</div>
 
-  <button id="back">&larr; Back</button>
-  <button id="continue">Continue &rarr;</button>
+  <div id="controls">
+    <button id="back">← Back</button>
+    <button id="continue">Continue →</button>
+    <button id="font-toggle">Toggle Font</button>
+    <button id="text-size-smaller">A−</button>
+    <button id="text-size-larger">A+</button>
+    <button id="dark-mode-toggle">🌙</button>
+  </div>
 
   <div id="music-player">
     <div id="now-playing">Now Playing: <span id="current-song">None</span></div>
@@ -32,21 +118,15 @@
     <div id="playlist"></div>
   </div>
 
-  <button id="mute-btn">🔊</button>
-
   <script>
     const docUrl = "https://docs.google.com/document/d/e/2PACX-1vTqZBPA3iIzbIUmz-NTlIRPVxPzbh3QhcrmsyFGOBnjMmVymXiEJIkkViykoKdJag69HVtM8P4t36zW/pub";
     const container = document.getElementById('story-container');
     const button = document.getElementById('continue');
     const backButton = document.getElementById('back');
     const pageSelect = document.getElementById('page-select');
-    const fontSizeSlider = document.getElementById('font-size');
-    const toggleFont = document.getElementById('toggle-font');
-    const darkToggle = document.getElementById('dark-mode-toggle');
 
     let pages = [];
     let currentPage = 0;
-    let currentFont = "Georgia, serif";
 
     fetch(docUrl)
       .then(res => res.text())
@@ -54,9 +134,17 @@
         const parser = new DOMParser();
         const htmlDoc = parser.parseFromString(data, 'text/html');
         let text = htmlDoc.body.innerText;
-        text = text.replace(/^Published using Google Docs\s*/, '').replace(/[\u200B-\u200D\uFEFF]/g, '');
+
+        text = text.replace(/^Published using Google Docs\s*/, '');
+        text = text.replace(/[\u200B-\u200D\uFEFF]/g, '');
         pages = text.includes("===PAGE===") ? text.split("===PAGE===") : [text];
-        while (pages.length && pages[pages.length - 1].trim() === "") pages.pop();
+
+        // Trim each page and remove empty ones from ends
+        pages = pages.map(p => p.trim()).filter((p, i, arr) => i !== 0 || !p.startsWith("Report abuse"));
+
+        while (pages.length > 0 && pages[pages.length - 1].match(/(learn more|counter|lst-)/i)) {
+          pages.pop();
+        }
 
         pages.forEach((_, i) => {
           const option = document.createElement("option");
@@ -66,85 +154,64 @@
         });
 
         const savedPage = parseInt(localStorage.getItem("lastPage"));
-        if (!isNaN(savedPage) && savedPage >= 0 && savedPage < pages.length) currentPage = savedPage;
-
-        const savedTrack = parseInt(localStorage.getItem("currentTrack"));
-        if (!isNaN(savedTrack)) currentTrack = savedTrack;
+        if (!isNaN(savedPage) && savedPage >= 0 && savedPage < pages.length) {
+          currentPage = savedPage;
+        }
 
         pageSelect.value = currentPage;
         showPage();
-        loadSong(currentTrack);
-      })
-      .catch(err => {
-        container.innerText = "Failed to load story.";
-        console.error(err);
       });
 
     function showPage() {
-      while (pages[currentPage] && pages[currentPage].trim() === "" && currentPage < pages.length - 1) currentPage++;
-      container.classList.remove("visible");
-
-      setTimeout(() => {
-        container.innerText = pages[currentPage].trim();
-        container.classList.add("visible");
-        button.style.display = (currentPage < pages.length - 1) ? "block" : "none";
-        backButton.style.display = (currentPage > 0) ? "block" : "none";
-        document.getElementById("progress").innerText = `Page ${currentPage + 1} of ${pages.length}`;
-        pageSelect.value = currentPage;
-        localStorage.setItem("lastPage", currentPage);
-      }, 100);
+      container.innerText = pages[currentPage] || "(Blank)";
+      document.getElementById("progress").innerText =
+        `Page ${currentPage + 1} of ${pages.length}`;
+      pageSelect.value = currentPage;
+      button.style.display = (currentPage < pages.length - 1) ? "inline-block" : "none";
+      backButton.style.display = (currentPage > 0) ? "inline-block" : "none";
+      localStorage.setItem("lastPage", currentPage);
     }
 
-    button.addEventListener('click', () => {
+    button.onclick = () => {
       if (currentPage < pages.length - 1) currentPage++;
       showPage();
-    });
+    };
 
-    backButton.addEventListener('click', () => {
+    backButton.onclick = () => {
       if (currentPage > 0) currentPage--;
       showPage();
-    });
+    };
 
-    pageSelect.addEventListener('change', () => {
+    pageSelect.onchange = () => {
       currentPage = parseInt(pageSelect.value);
       showPage();
-    });
+    };
 
     document.addEventListener("keydown", e => {
-      if (e.key === "ArrowRight" && currentPage < pages.length - 1) {
-        currentPage++;
-        showPage();
-      } else if (e.key === "ArrowLeft" && currentPage > 0) {
-        currentPage--;
-        showPage();
-      }
-    });
-
-    // Search
-    function searchText() {
-      const term = document.getElementById("search").value.toLowerCase();
-      if (!term) return;
-      const index = pages.findIndex(p => p.toLowerCase().includes(term));
-      if (index !== -1) {
-        currentPage = index;
-        showPage();
-      } else {
-        alert("No matches found.");
-      }
-    }
-
-    // Font size adjuster
-    fontSizeSlider.addEventListener("input", () => {
-      container.style.fontSize = `${fontSizeSlider.value}px`;
+      if (e.key === "ArrowRight") button.click();
+      if (e.key === "ArrowLeft") backButton.click();
     });
 
     // Font toggle
-    toggleFont.addEventListener("click", () => {
-      currentFont = currentFont.includes("Georgia") ? "Arial, sans-serif" : "Georgia, serif";
-      container.style.fontFamily = currentFont;
+    const fontToggle = document.getElementById("font-toggle");
+    fontToggle.addEventListener("click", () => {
+      const currentFont = container.style.fontFamily;
+      container.style.fontFamily = currentFont.includes("sans-serif") ? "Georgia, serif" : "Arial, sans-serif";
     });
 
+    // Text size controls
+    document.getElementById("text-size-smaller").onclick = () => {
+      const size = parseFloat(getComputedStyle(container).fontSize);
+      container.style.fontSize = Math.max(size - 1, 12) + "px";
+    };
+
+    document.getElementById("text-size-larger").onclick = () => {
+      const size = parseFloat(getComputedStyle(container).fontSize);
+      container.style.fontSize = (size + 1) + "px";
+    };
+
     // Dark mode toggle
+    const darkToggle = document.getElementById("dark-mode-toggle");
     darkToggle.addEventListener("click", () => {
       document.body.classList.toggle("dark-mode");
     });
@@ -155,27 +222,26 @@
       { title: "Mia and Sebastian’s Theme", src: "Music/hauser_mia_and_sebastian_theme.mp3" },
       { title: "Merry Go Round of Life", src: "Music/merry_go_round_of_life.mp3" }
     ];
-    const audio = document.getElementById('audio');
-    const currentSong = document.getElementById('current-song');
-    const playlistDiv = document.getElementById('playlist');
-    const muteBtn = document.getElementById('mute-btn');
-    let currentTrack = 0;
-    let isMuted = false;
+
+    const audio = document.getElementById("audio");
+    const currentSong = document.getElementById("current-song");
+    const playlistDiv = document.getElementById("playlist");
+    let currentTrack = parseInt(localStorage.getItem("lastTrack")) || 0;
 
     function loadSong(index) {
       audio.src = playlist[index].src;
       currentSong.textContent = playlist[index].title;
-      localStorage.setItem("currentTrack", index);
-      audio.play().catch(e => console.log("Autoplay blocked"));
+      localStorage.setItem("lastTrack", index);
+      audio.play().catch(() => {});
     }
 
-    audio.addEventListener('ended', () => {
+    audio.addEventListener("ended", () => {
       currentTrack = (currentTrack + 1) % playlist.length;
       loadSong(currentTrack);
     });
 
     playlist.forEach((song, index) => {
-      const btn = document.createElement('button');
+      const btn = document.createElement("button");
       btn.textContent = song.title;
       btn.onclick = () => {
         currentTrack = index;
@@ -184,31 +250,9 @@
       playlistDiv.appendChild(btn);
     });
 
-    muteBtn.addEventListener('click', () => {
-      isMuted = !isMuted;
-      audio.muted = isMuted;
-      muteBtn.innerText = isMuted ? "🔇" : "🔊";
-    });
-
     window.addEventListener("load", () => {
-      const savedTrack = parseInt(localStorage.getItem("currentTrack"));
-      if (!isNaN(savedTrack)) currentTrack = savedTrack;
       loadSong(currentTrack);
     });
   </script>
-
-  <style>
-    body.dark-mode {
-      background-color: #111;
-      color: #eee;
-    }
-    body.dark-mode #story-container {
-      background: #1c1c1c;
-      color: #eee;
-    }
-    body.dark-mode #now-playing {
-      color: #bbb;
-    }
-  </style>
 </body>
 </html>
