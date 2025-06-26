@@ -3,124 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <title>A Season Spent Loving You</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="data:,">
   <style>
-    :root {
-      --bg: #f9f6f3;
-      --text: #111;
-    }
-
-    body.dark {
-      --bg: #1a1a1a;
-      --text: #f0f0f0;
-    }
-
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Georgia, serif;
-      line-height: 1.6;
-      transition: background 0.3s, color 0.3s;
-    }
-
-    #story-container {
-      max-width: 700px;
-      margin: 20px auto;
-      background: #fff;
-      color: #111;
-      padding: 20px;
-      white-space: pre-wrap;
-      border-radius: 8px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.1);
-    }
-
-    body.dark #story-container {
-      background: #2b2b2b;
-      color: #f0f0f0;
-    }
-
-    h1 {
-      text-align: center;
-      margin-top: 30px;
-    }
-
-    #progress, #page-selector {
-      text-align: center;
-      margin: 10px 0;
-    }
-
-    #continue, #back {
-      display: none;
-      margin: 10px auto;
-      padding: 10px 25px;
-      font-size: 1em;
-      border: none;
-      color: white;
-      cursor: pointer;
-      display: inline-block;
-    }
-
-    #continue { background-color: #444; }
-    #back { background-color: #888; }
-
-    #continue:hover { background-color: #222; }
-    #back:hover { background-color: #555; }
-
-    #music-player {
-      text-align: center;
-      margin-top: 40px;
-    }
-
-    #now-playing {
-      font-size: 1em;
-      color: #888;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0% { opacity: 0.6; }
-      50% { opacity: 1; }
-      100% { opacity: 0.6; }
-    }
-
-    #playlist button {
-      margin: 4px;
-      padding: 6px 12px;
-      font-size: 0.9em;
-    }
-
-    #toggle-theme, #toggle-font, #increase-text, #decrease-text {
-      margin: 5px;
-      padding: 5px 12px;
-      font-size: 0.9em;
-      cursor: pointer;
-    }
+    body { background: #f9f6f3; color: #111; font-family: Georgia, serif; margin:0; padding:20px; transition: background .3s, color .3s; }
+    body.dark { background: #222; color: #eee; }
+    #story-container { max-width:700px; margin:20px auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 8px rgba(0,0,0,.1); white-space:pre-wrap; }
+    body.dark #story-container { background:#333; color:#eee; }
+    h1, #progress, #page-selector { text-align:center; }
+    button, select { margin:5px; padding:6px 10px; cursor:pointer; }
+    #music-player { text-align:center; margin-top:30px; }
+    #playlist button { margin:2px; padding:4px 8px; }
   </style>
 </head>
 <body>
   <h1>A Season Spent Loving You</h1>
   <div id="progress">Loading...</div>
   <div id="page-selector">
-    Jump to page:
-    <select id="page-select"></select>
+    Jump to page: <select id="page-select"></select>
   </div>
-  <div style="text-align: center;">
-    <button id="toggle-theme">Toggle Dark Mode</button>
-    <button id="toggle-font">Toggle Font</button>
-    <button id="increase-text">A+</button>
-    <button id="decrease-text">A-</button>
-  </div>
-  <div id="story-container">Loading story...</div>
+  <button id="toggle-theme">Toggle Dark Mode</button>
+  <button id="toggle-font">Toggle Font</button>
+  <button id="increase-text">A+</button>
+  <button id="decrease-text">A–</button>
+  <div id="story-container">Loading story…</div>
   <div style="text-align:center;">
     <button id="back">&larr; Back</button>
     <button id="continue">Continue &rarr;</button>
   </div>
-
   <div id="music-player">
-    <div id="now-playing">Now Playing: <span id="current-song">None</span></div>
+    <div>Now Playing: <span id="current-song">None</span></div>
     <audio id="audio" controls autoplay></audio>
     <div id="playlist"></div>
   </div>
@@ -128,117 +40,94 @@
   <script>
     const docUrl = "https://docs.google.com/document/d/e/2PACX-1vTqZBPA3iIzbIUmz-NTlIRPVxPzbh3QhcrmsyFGOBnjMmVymXiEJIkkViykoKdJag69HVtM8P4t36zW/pub";
     const container = document.getElementById('story-container');
-    const back = document.getElementById('back');
-    const next = document.getElementById('continue');
-    const pageSelect = document.getElementById('page-select');
+    const back = document.getElementById('back'), next = document.getElementById('continue');
+    const pselect = document.getElementById('page-select');
     const progress = document.getElementById('progress');
 
     let pages = [], currentPage = 0;
 
-    fetch(docUrl)
-      .then(res => res.text())
-      .then(data => {
-        const parser = new DOMParser();
-        const htmlDoc = parser.parseFromString(data, 'text/html');
-        let text = htmlDoc.body.innerText;
+    fetch(docUrl).then(r=>r.text()).then(html => {
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      let raw = doc.body.innerText || "";
 
-        // Remove junk and split
-        text = text.replace(/^Published using Google Docs\s*/, '');
-        text = text.replace(/[\u200B-\u200D\uFEFF]/g, '');
-        text = text.replace(/function\s.*?return\s.*?;/gs, ''); // cut any JS code
-        pages = text.split("===PAGE===").filter(p => p.trim().length > 20);
+      // 1. Remove the "Published using…" header
+      raw = raw.replace(/^Published using Google Docs\s*/, "");
 
-        pages.forEach((_, i) => {
-          const opt = document.createElement('option');
-          opt.value = i;
-          opt.textContent = `Page ${i + 1}`;
-          pageSelect.appendChild(opt);
-        });
+      // 2. Remove stray CSS/code blocks
+      raw = raw.replace(/(\.lst-kix_[\s\S]*?\})+/g, "");
 
-        const saved = parseInt(localStorage.getItem("lastPage"));
-        if (!isNaN(saved) && saved >= 0 && saved < pages.length) currentPage = saved;
+      // 3. Split into pages
+      pages = raw.split("===PAGE===").map(s=>s.trim()).filter(s=>s.length>20);
 
-        showPage();
+      // 4. Populate dropdown
+      pages.forEach((_,i)=>{
+        let o = document.createElement('option');
+        o.value = i; o.textContent = "Page "+(i+1);
+        pselect.appendChild(o);
       });
 
-    function showPage() {
+      // 5. Load saved position
+      let saved = parseInt(localStorage.getItem("lastPage"));
+      if (!isNaN(saved)) currentPage = Math.min(saved, pages.length-1);
+
+      showPage();
+    });
+
+    function showPage(){
       if (!pages.length) return;
-      container.innerText = pages[currentPage].trim();
-      back.style.display = currentPage > 0 ? 'inline-block' : 'none';
-      next.style.display = currentPage < pages.length - 1 ? 'inline-block' : 'none';
-      progress.textContent = `Page ${currentPage + 1} of ${pages.length}`;
-      pageSelect.value = currentPage;
+      container.textContent = pages[currentPage];
+      progress.textContent = `Page ${currentPage+1} of ${pages.length}`;
+      back.style.display = currentPage ? 'inline-block':'none';
+      next.style.display = currentPage < pages.length-1 ? 'inline-block' : 'none';
+      pselect.value = currentPage;
       localStorage.setItem("lastPage", currentPage);
     }
 
-    next.onclick = () => { if (currentPage < pages.length - 1) { currentPage++; showPage(); } };
-    back.onclick = () => { if (currentPage > 0) { currentPage--; showPage(); } };
-    pageSelect.onchange = e => { currentPage = parseInt(e.target.value); showPage(); };
-    window.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight') next.click();
-      else if (e.key === 'ArrowLeft') back.click();
-    });
+    next.onclick = ()=>{ if (currentPage<pages.length-1) { currentPage++; showPage(); } };
+    back.onclick = ()=>{ if (currentPage>0) { currentPage--; showPage(); } };
+    pselect.onchange = ()=>{ currentPage = +pselect.value; showPage(); };
+    window.addEventListener('keydown', e=>{ if(e.key=='ArrowRight') next.click(); if(e.key=='ArrowLeft') back.click(); });
 
-    // Music
+    // Music playlist resume
     const playlist = [
-      { title: "Let You Break My Heart Again", src: "Music/let_you_break_my_heart_again.mp3" },
-      { title: "Mia and Sebastian’s Theme", src: "Music/hauser_mia_and_sebastian_theme.mp3" },
-      { title: "Merry Go Round of Life", src: "Music/merry_go_round_of_life.mp3" }
+      {title:"Let You Break My Heart Again",src:"Music/let_you_break_my_heart_again.mp3"},
+      {title:"Mia and Sebastian’s Theme",src:"Music/hauser_mia_and_sebastian_theme.mp3"},
+      {title:"Merry Go Round of Life",src:"Music/merry_go_round_of_life.mp3"},
     ];
-    const audio = document.getElementById("audio");
-    const playlistDiv = document.getElementById("playlist");
-    const nowPlaying = document.getElementById("current-song");
-    let currentTrack = parseInt(localStorage.getItem("lastTrack")) || 0;
+    const audio = document.getElementById('audio'), playDiv = document.getElementById('playlist');
+    const nowi = document.getElementById('current-song');
+    let track = parseInt(localStorage.getItem("lastTrack"))||0;
 
-    function playTrack(index) {
-      audio.src = playlist[index].src;
-      nowPlaying.textContent = playlist[index].title;
-      audio.play();
-      localStorage.setItem("lastTrack", index);
+    playlist.forEach((s,i)=>{
+      let b=document.createElement('button');
+      b.textContent = s.title;
+      b.onclick=()=>{ track=i; play(i); };
+      playDiv.appendChild(b);
+    });
+
+    function play(i){
+      audio.src = playlist[i].src;
+      nowi.textContent = playlist[i].title;
+      audio.play().catch(()=>{}); 
+      localStorage.setItem("lastTrack",i);
     }
+    audio.onended = ()=>{ track=(track+1)%playlist.length; play(track); };
+    window.onload = ()=> play(track);
 
-    playlist.forEach((song, i) => {
-      const btn = document.createElement("button");
-      btn.textContent = song.title;
-      btn.onclick = () => {
-        currentTrack = i;
-        playTrack(i);
-      };
-      playlistDiv.appendChild(btn);
-    });
-
-    audio.addEventListener("ended", () => {
-      currentTrack = (currentTrack + 1) % playlist.length;
-      playTrack(currentTrack);
-    });
-
-    window.addEventListener("load", () => {
-      playTrack(currentTrack);
-    });
-
-    // Theme + font toggles
-    const toggleTheme = document.getElementById("toggle-theme");
-    const toggleFont = document.getElementById("toggle-font");
-    const body = document.body;
-
-    toggleTheme.onclick = () => body.classList.toggle("dark");
-
-    let serifFont = true;
-    toggleFont.onclick = () => {
-      document.body.style.fontFamily = serifFont ? 'Arial, sans-serif' : 'Georgia, serif';
-      serifFont = !serifFont;
+    // Dark mode toggle
+    document.getElementById('toggle-theme').onclick = ()=>{
+      document.body.classList.toggle('dark');
     };
-
-    // Text size adjust
-    let textSize = 1.2;
-    document.getElementById("increase-text").onclick = () => {
-      textSize += 0.1;
-      container.style.fontSize = `${textSize}em`;
+    // Font toggle
+    let serif = true;
+    document.getElementById('toggle-font').onclick = ()=>{
+      document.body.style.fontFamily = serif ? 'Arial, sans-serif' : 'Georgia, serif';
+      serif = !serif;
     };
-    document.getElementById("decrease-text").onclick = () => {
-      textSize = Math.max(0.8, textSize - 0.1);
-      container.style.fontSize = `${textSize}em`;
-    };
+    // Text size
+    let sz = 1;
+    document.getElementById('increase-text').onclick = ()=>{ sz += 0.1; container.style.fontSize = (sz+0.9)+'em'; };
+    document.getElementById('decrease-text').onclick = ()=>{ sz = Math.max(0.5, sz-0.1); container.style.fontSize = (sz+0.9)+'em'; };
   </script>
 </body>
 </html>
