@@ -5,19 +5,33 @@
   <title>A Season Spent Loving You</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="data:,">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg-light: #f9f6f3;
+      --bg-dark: #1a1a1d;
+      --text-light: #111;
+      --text-dark: #eaeaea;
+      --highlight-light: #444;
+      --highlight-dark: #a84565;
+      --card-light: #ffffff;
+      --card-dark: #2e2e2e;
+    }
+
     html, body {
+      height: 100%;
       margin: 0;
       padding: 0;
-      background: #f9f6f3;
-      font-family: Georgia, serif;
-      color: #111;
+      background: var(--bg-light);
+      font-family: 'Playfair Display', serif;
+      color: var(--text-light);
       line-height: 1.6;
+      transition: background 0.4s, color 0.4s;
     }
 
     body.dark-mode {
-      background: #1e1e1e;
-      color: #eaeaea;
+      background: var(--bg-dark);
+      color: var(--text-dark);
     }
 
     h1 {
@@ -36,17 +50,16 @@
       margin: 0 auto 20px;
       font-size: 1.2em;
       padding: 20px;
-      background: #fff;
-      color: #111;
-      border-radius: 8px;
-      box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
-      transition: background 0.3s, color 0.3s;
-      min-height: 300px;
+      background: var(--card-light);
+      color: var(--text-light);
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+      transition: background 0.4s, color 0.4s;
     }
 
     body.dark-mode #story-container {
-      background: #2e2e2e;
-      color: #eaeaea;
+      background: var(--card-dark);
+      color: var(--text-dark);
     }
 
     #controls {
@@ -56,9 +69,24 @@
 
     button, select {
       margin: 5px;
-      padding: 8px 16px;
+      padding: 10px 18px;
       font-size: 1em;
       cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      background-color: var(--highlight-light);
+      color: white;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    button:hover, select:hover {
+      background-color: #222;
+      transform: scale(1.03);
+    }
+
+    body.dark-mode button,
+    body.dark-mode select {
+      background-color: var(--highlight-dark);
     }
 
     #music-player {
@@ -70,7 +98,7 @@
       font-size: 1em;
       margin-bottom: 10px;
       animation: pulse 2s infinite;
-      color: #444;
+      color: var(--highlight-light);
     }
 
     @keyframes pulse {
@@ -95,6 +123,7 @@
 <body>
   <h1>A Season Spent Loving You</h1>
   <div id="progress"></div>
+
   <div id="page-selector">
     Jump to page:
     <select id="page-select"></select>
@@ -132,27 +161,23 @@
       .then(data => {
         const parser = new DOMParser();
         const htmlDoc = parser.parseFromString(data, 'text/html');
+        let text = htmlDoc.body.innerText;
 
-        const contentNode = htmlDoc.querySelector('.doc-content') || htmlDoc.body;
-        let text = contentNode.innerText || '';
-
-        // Clean up unwanted prefixes and artifacts
         text = text.replace(/^Published using Google Docs\s*/, '');
         text = text.replace(/[\u200B-\u200D\uFEFF]/g, '');
 
         pages = text.includes("===PAGE===") ? text.split("===PAGE===") : [text];
+        pages = pages.map(p => p.trim()).filter((p, i) => !(i === 0 && p.toLowerCase().startsWith("a season spent")));
 
-        // Trim each page and remove garbage
-        pages = pages.map(p => p.trim()).filter(p =>
-          p && !p.startsWith("Report abuse") && !p.match(/(lst-kix|goog|kix-|function|learn more|counter)/i)
-        );
+        while (pages.length && pages[pages.length - 1].match(/(learn more|counter|lst-|show simplified)/i)) {
+          pages.pop();
+        }
 
-        // Populate dropdown
         pages.forEach((_, i) => {
-          const option = document.createElement("option");
-          option.value = i;
-          option.textContent = `Page ${i + 1}`;
-          pageSelect.appendChild(option);
+          const opt = document.createElement("option");
+          opt.value = i;
+          opt.textContent = `Page ${i + 1}`;
+          pageSelect.appendChild(opt);
         });
 
         const savedPage = parseInt(localStorage.getItem("lastPage"));
@@ -166,8 +191,7 @@
 
     function showPage() {
       container.innerText = pages[currentPage] || "(Blank)";
-      document.getElementById("progress").innerText =
-        `Page ${currentPage + 1} of ${pages.length}`;
+      document.getElementById("progress").innerText = `Page ${currentPage + 1} of ${pages.length}`;
       pageSelect.value = currentPage;
       button.style.display = (currentPage < pages.length - 1) ? "inline-block" : "none";
       backButton.style.display = (currentPage > 0) ? "inline-block" : "none";
@@ -197,18 +221,18 @@
     // Font toggle
     document.getElementById("font-toggle").onclick = () => {
       container.style.fontFamily = container.style.fontFamily.includes("sans-serif")
-        ? "Georgia, serif" : "Arial, sans-serif";
+        ? "'Playfair Display', serif"
+        : "Arial, sans-serif";
     };
 
-    // Text size controls
+    // Text size
     document.getElementById("text-size-smaller").onclick = () => {
       const size = parseFloat(getComputedStyle(container).fontSize);
       container.style.fontSize = Math.max(size - 1, 12) + "px";
     };
-
     document.getElementById("text-size-larger").onclick = () => {
       const size = parseFloat(getComputedStyle(container).fontSize);
-      container.style.fontSize = (size + 1) + "px";
+      container.style.fontSize = size + 1 + "px";
     };
 
     // Dark mode
