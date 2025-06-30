@@ -167,7 +167,17 @@
         text = text.replace(/[\u200B-\u200D\uFEFF]/g, '');
         pages = text.includes("===PAGE===") ? text.split("===PAGE===") : [text];
 
-        pages = pages.map(p => p.trim()).filter(p => p && !p.toLowerCase().includes("learn more") && !p.includes("lst-"));
+        pages = pages.map(p => p.trim());
+
+        // Remove junk first page
+        if (pages[0].match(/(report abuse|learn more|lst-)/i)) {
+          pages.shift();
+        }
+
+        // Remove last page if it's just code
+        while (pages.length > 1 && pages[pages.length - 1].match(/(function|Object|globalThis|lst-)/i)) {
+          pages.pop();
+        }
 
         pages.forEach((_, i) => {
           const option = document.createElement("option");
@@ -188,7 +198,7 @@
     function showPage() {
       container.classList.remove("visible");
       setTimeout(() => {
-        container.innerText = pages[currentPage] || "(Blank)";
+        container.innerText = pages[currentPage] || "(This page is empty)";
         container.classList.add("visible");
         document.getElementById("progress").innerText = `Page ${currentPage + 1} of ${pages.length}`;
         pageSelect.value = currentPage;
@@ -216,6 +226,7 @@
       const size = parseFloat(getComputedStyle(container).fontSize);
       container.style.fontSize = Math.max(size - 1, 12) + "px";
     };
+
     document.getElementById("text-size-larger").onclick = () => {
       const size = parseFloat(getComputedStyle(container).fontSize);
       container.style.fontSize = (size + 1) + "px";
