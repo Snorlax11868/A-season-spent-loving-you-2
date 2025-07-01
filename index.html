@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <title>A Season Spent Loving You</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:," />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Great+Vibes&display=swap" rel="stylesheet" />
+  <link rel="icon" href="data:," />
   <style>
     html, body {
       margin: 0;
@@ -13,7 +13,6 @@
       font-family: 'Playfair Display', serif;
       background: #f9f6f3;
       color: #111;
-      line-height: 1.6;
       transition: background 0.5s, color 0.5s;
     }
 
@@ -22,38 +21,20 @@
       color: #eaeaea;
     }
 
-    body.light-mode::before,
-    body.dark-mode::before {
-      content: "";
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      z-index: -1;
-    }
-
-    body.light-mode::before {
-      background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Epiphyllum_oxypetalum_%28flower%29.jpg/1024px-Epiphyllum_oxypetalum_%28flower%29.jpg') no-repeat center center fixed;
-      background-size: cover;
-      opacity: 0.05;
-    }
-
-    body.dark-mode::before {
-      background: radial-gradient(ellipse at center, rgba(168,69,101,0.1) 0%, rgba(26,26,29,1) 100%);
-    }
-
     h1 {
       font-family: 'Great Vibes', cursive;
       text-align: center;
-      margin: 30px 0 10px;
       font-size: 2.5em;
       color: #a84565;
+      margin: 30px 0 10px;
       opacity: 0;
-      animation: fadeIn 2s ease-in-out forwards;
+      animation: fadeIn 1.5s ease-in forwards;
     }
 
     .tagline {
       text-align: center;
-      font-size: 0.9em;
-      color: #888;
+      font-size: 0.95em;
+      color: #777;
       font-style: italic;
       margin-bottom: 20px;
     }
@@ -66,55 +47,37 @@
     #story-container {
       white-space: pre-wrap;
       max-width: 700px;
-      margin: 0 auto 20px;
-      font-size: 1.2em;
+      margin: 20px auto;
       padding: 20px;
+      font-size: 1.2em;
       background: #fff;
       color: #111;
       border-radius: 8px;
       box-shadow: 0 0 8px rgba(0,0,0,0.1);
       min-height: 300px;
       opacity: 0;
-      transition: opacity 0.6s ease-in-out;
+      transition: opacity 0.6s ease;
     }
 
-    .visible {
-      opacity: 1;
-    }
+    .visible { opacity: 1; }
 
     body.dark-mode #story-container {
       background: #2e2e2e;
       color: #eaeaea;
     }
 
-    #letter-label {
-      text-align: right;
-      font-size: 0.8em;
-      color: #999;
-      margin-right: 30px;
-    }
-
     button, select {
-      margin: 5px;
-      padding: 8px 16px;
+      margin: 4px;
+      padding: 8px 14px;
       font-size: 1em;
       cursor: pointer;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      background-color: #eee;
     }
 
     #now-playing {
-      font-size: 1em;
-      margin-bottom: 10px;
-      animation: pulse 2s infinite;
-      color: #444;
       text-align: center;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 0.6; }
-      50% { opacity: 1; }
+      font-size: 1em;
+      color: #666;
+      margin-bottom: 5px;
     }
 
     #playlist {
@@ -122,9 +85,10 @@
     }
 
     #playlist button {
-      margin: 4px;
+      margin: 3px;
       padding: 6px 12px;
-      font-size: 0.9em;
+      background-color: #eee;
+      border: 1px solid #ccc;
     }
 
     body.dark-mode #playlist button {
@@ -132,34 +96,40 @@
       color: white;
     }
 
+    #letter-count {
+      text-align: right;
+      font-size: 0.85em;
+      margin-right: 20px;
+      color: #777;
+    }
+
     @keyframes fadeIn {
       to { opacity: 1; }
     }
 
     .special-title {
+      font-size: 1.8em;
       text-align: center;
-      font-size: 1.4em;
       font-weight: bold;
       color: #a84565;
-      margin-top: 10px;
       opacity: 0;
       animation: fadeIn 1.5s ease-in forwards;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body class="light-mode">
   <h1>A Season Spent Loving You</h1>
   <p class="tagline">Letters written when the world was asleep</p>
-
   <div id="progress"></div>
   <div id="page-selector">
     Jump to page:
     <select id="page-select"></select>
   </div>
 
-  <div id="story-container">Loading story...</div>
   <div id="special-title" class="special-title"></div>
-  <div id="letter-label"></div>
+  <div id="story-container">Loading story...</div>
+  <div id="letter-count"></div>
 
   <div id="controls">
     <button id="back">← Back</button>
@@ -177,14 +147,14 @@
   <script>
     const docUrl = "https://docs.google.com/document/d/e/2PACX-1vTqZBPA3iIzbIUmz-NTlIRPVxPzbh3QhcrmsyFGOBnjMmVymXiEJIkkViykoKdJag69HVtM8P4t36zW/pub";
     const container = document.getElementById('story-container');
-    const button = document.getElementById('continue');
-    const backButton = document.getElementById('back');
+    const titleBox = document.getElementById('special-title');
+    const progress = document.getElementById('progress');
+    const letterCount = document.getElementById('letter-count');
     const pageSelect = document.getElementById('page-select');
-    const specialTitle = document.getElementById('special-title');
-    const letterLabel = document.getElementById('letter-label');
+    const backButton = document.getElementById('back');
+    const nextButton = document.getElementById('continue');
 
-    let pages = [];
-    let currentPage = 0;
+    let pages = [], currentPage = 0;
 
     fetch(docUrl)
       .then(res => res.text())
@@ -193,23 +163,19 @@
         const htmlDoc = parser.parseFromString(data, 'text/html');
         let text = htmlDoc.body.innerText;
 
-        text = text.replace(/^Published using Google Docs\s*/, '');
-        text = text.replace(/[\u200B-\u200D\uFEFF]/g, '');
+        text = text.replace(/^Published using Google Docs\s*/, '').replace(/[\u200B-\u200D\uFEFF]/g, '');
         pages = text.includes("===PAGE===") ? text.split("===PAGE===") : [text];
-
-        pages = pages.map(p => p.trim()).filter(p => p && !p.toLowerCase().includes("learn more") && !p.includes("lst-"));
+        pages = pages.map(p => p.trim()).filter(p => p && !p.includes("lst-") && !p.toLowerCase().includes("report abuse"));
 
         pages.forEach((_, i) => {
-          const option = document.createElement("option");
-          option.value = i;
-          option.textContent = `Page ${i + 1}`;
-          pageSelect.appendChild(option);
+          const opt = document.createElement("option");
+          opt.value = i;
+          opt.textContent = `Page ${i + 1}`;
+          pageSelect.appendChild(opt);
         });
 
-        const savedPage = parseInt(localStorage.getItem("lastPage"));
-        if (!isNaN(savedPage) && savedPage >= 0 && savedPage < pages.length) {
-          currentPage = savedPage;
-        }
+        const saved = parseInt(localStorage.getItem("lastPage"));
+        if (!isNaN(saved) && saved >= 0 && saved < pages.length) currentPage = saved;
 
         pageSelect.value = currentPage;
         showPage();
@@ -217,50 +183,59 @@
 
     function showPage() {
       container.classList.remove("visible");
-      specialTitle.textContent = "";
+      titleBox.innerHTML = "";
+
       setTimeout(() => {
         container.innerText = pages[currentPage] || "(Blank)";
         container.classList.add("visible");
 
-        const titleMap = {
-          19: "Carpe Diem",
-          43: "Mi cielo",
-          44: "The Thought of You"
-        };
-
-        if (titleMap[currentPage]) {
-          specialTitle.textContent = titleMap[currentPage];
-        }
-
-        document.getElementById("progress").innerText = `Page ${currentPage + 1} of ${pages.length}`;
+        progress.innerText = `Page ${currentPage + 1} of ${pages.length}`;
+        letterCount.innerText = `Letter #${currentPage + 1}`;
         pageSelect.value = currentPage;
-        letterLabel.innerText = `Letter #${currentPage + 1}`;
-        button.style.display = (currentPage < pages.length - 1) ? "inline-block" : "none";
-        backButton.style.display = (currentPage > 0) ? "inline-block" : "none";
         localStorage.setItem("lastPage", currentPage);
-      }, 100);
+
+        // Special titles
+        if (currentPage === 19) titleBox.innerText = "Carpe Diem";
+        else if (currentPage === 43) titleBox.innerText = "Mi cielo";
+        else if (currentPage === 44) titleBox.innerText = "The Thought of You";
+      }, 150);
     }
 
-    button.onclick = () => { if (currentPage < pages.length - 1) currentPage++; showPage(); };
-    backButton.onclick = () => { if (currentPage > 0) currentPage--; showPage(); };
-    pageSelect.onchange = () => { currentPage = parseInt(pageSelect.value); showPage(); };
+    document.getElementById("continue").onclick = () => {
+      if (currentPage < pages.length - 1) currentPage++;
+      showPage();
+    };
+
+    document.getElementById("back").onclick = () => {
+      if (currentPage > 0) currentPage--;
+      showPage();
+    };
+
+    pageSelect.onchange = () => {
+      currentPage = parseInt(pageSelect.value);
+      showPage();
+    };
+
     document.addEventListener("keydown", e => {
-      if (e.key === "ArrowRight") button.click();
+      if (e.key === "ArrowRight") nextButton.click();
       if (e.key === "ArrowLeft") backButton.click();
     });
 
     document.getElementById("font-toggle").onclick = () => {
-      const f = container.style.fontFamily;
-      container.style.fontFamily = f.includes("sans") ? "Georgia, serif" : "Arial, sans-serif";
+      const currentFont = container.style.fontFamily;
+      container.style.fontFamily = currentFont.includes("sans-serif") ? "Georgia, serif" : "Arial, sans-serif";
     };
+
     document.getElementById("text-size-smaller").onclick = () => {
       const size = parseFloat(getComputedStyle(container).fontSize);
       container.style.fontSize = Math.max(size - 1, 12) + "px";
     };
+
     document.getElementById("text-size-larger").onclick = () => {
       const size = parseFloat(getComputedStyle(container).fontSize);
       container.style.fontSize = (size + 1) + "px";
     };
+
     document.getElementById("dark-mode-toggle").onclick = () => {
       document.body.classList.toggle("dark-mode");
       document.body.classList.toggle("light-mode");
@@ -272,7 +247,6 @@
       { title: "Mia and Sebastian’s Theme", src: "Music/hauser_mia_and_sebastian_theme.mp3" },
       { title: "Merry Go Round of Life", src: "Music/merry_go_round_of_life.mp3" }
     ];
-
     const audio = document.getElementById("audio");
     const currentSong = document.getElementById("current-song");
     const playlistDiv = document.getElementById("playlist");
@@ -301,7 +275,6 @@
     });
 
     window.addEventListener("load", () => {
-      document.body.classList.add("light-mode");
       loadSong(currentTrack);
     });
   </script>
