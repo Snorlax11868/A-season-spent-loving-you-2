@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <title>A Season Spent Loving You</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Great+Vibes&display=swap" rel="stylesheet" />
+  <link rel="icon" href="data:," />
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display&display=swap" rel="stylesheet">
   <style>
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
       font-family: 'Playfair Display', serif;
       background: #f9f6f3;
       color: #111;
@@ -16,160 +16,93 @@
     }
 
     body.dark-mode {
-      background-color: #1a1a1d;
+      background: #1a1a1d;
       color: #eaeaea;
-    }
-
-    body.light-mode::before,
-    body.dark-mode::before {
-      content: "";
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      z-index: -1;
-    }
-
-    body.light-mode::before {
-      background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Epiphyllum_oxypetalum_%28flower%29.jpg/1024px-Epiphyllum_oxypetalum_%28flower%29.jpg') no-repeat center center fixed;
-      background-size: cover;
-      opacity: 0.05;
-    }
-
-    body.dark-mode::before {
-      background: radial-gradient(ellipse at center, rgba(168,69,101,0.1) 0%, rgba(26,26,29,1) 100%);
     }
 
     h1 {
       font-family: 'Great Vibes', cursive;
       text-align: center;
-      margin: 30px 0 10px;
-      font-size: 2.5em;
       color: #a84565;
+      font-size: 2.8em;
+      margin: 20px 0 5px;
       opacity: 0;
-      animation: fadeIn 2s ease forwards;
+      transform: translateY(-20px);
+      animation: fadeSlide 1.5s forwards ease-in-out;
     }
 
     .tagline {
       text-align: center;
-      font-size: 0.9em;
-      color: #888;
+      font-size: 0.95em;
+      color: #777;
+      margin-bottom: 10px;
       font-style: italic;
-      margin-bottom: 20px;
-      opacity: 0;
-      animation: fadeIn 3s ease forwards;
     }
 
-    #progress, #page-selector, #controls {
+    @keyframes fadeSlide {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #special-title {
       text-align: center;
-      margin-bottom: 10px;
+      font-size: 2em;
+      margin-top: 30px;
+      font-family: 'Great Vibes', cursive;
+      color: #a84565;
+      animation: fadeSlide 2s ease forwards;
+    }
+
+    .dark-mode #special-title {
+      color: #f0a3bd;
     }
 
     #story-container {
       white-space: pre-wrap;
       max-width: 700px;
-      margin: 20px auto;
+      margin: 30px auto;
       font-size: 1.2em;
       padding: 20px;
       background: #fff;
       color: #111;
       border-radius: 8px;
-      box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
-      transition: background 0.3s, color 0.3s;
       min-height: 300px;
-      opacity: 0;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      transition: background 0.4s, color 0.4s;
     }
 
-    .visible {
-      opacity: 1;
-      transition: opacity 0.6s ease-in;
-    }
-
-    body.dark-mode #story-container {
+    .dark-mode #story-container {
       background: #2e2e2e;
       color: #eaeaea;
     }
 
+    #controls, #progress, #page-selector {
+      text-align: center;
+      margin: 10px;
+    }
+
     button, select {
-      margin: 5px;
+      margin: 4px;
       padding: 8px 16px;
       font-size: 1em;
       cursor: pointer;
-      border-radius: 5px;
-      border: none;
-      background: #eee;
-      transition: background 0.3s;
     }
 
-    button:hover, select:hover {
-      background: #ddd;
-    }
-
-    #now-playing {
-      font-size: 1em;
-      margin-top: 10px;
-      animation: pulse 2s infinite;
-      color: #444;
-      text-align: center;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 0.6; }
-      50% { opacity: 1; }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    #playlist {
-      text-align: center;
-    }
-
-    #playlist button {
-      margin: 4px;
-      padding: 6px 12px;
-      font-size: 0.9em;
-      background-color: #eee;
-      border: 1px solid #ccc;
-    }
-
-    body.dark-mode #playlist button {
-      background-color: #444;
-      color: white;
-    }
-
-    #letter-count {
-      position: fixed;
-      bottom: 10px;
-      right: 15px;
-      font-size: 0.8em;
-      color: #888;
-    }
-
-    @media (max-width: 600px) {
-      #story-container {
-        padding: 15px;
-        font-size: 1em;
-      }
-
-      #letter-count {
-        font-size: 0.7em;
-      }
-    }
+    .hidden { display: none; }
   </style>
 </head>
 <body class="light-mode">
   <h1>A Season Spent Loving You</h1>
   <p class="tagline">Letters written when the world was asleep</p>
-
+  <div id="special-title" class="hidden"></div>
   <div id="progress"></div>
   <div id="page-selector">
     Jump to page:
     <select id="page-select"></select>
   </div>
-
   <div id="story-container">Loading story...</div>
-
   <div id="controls">
     <button id="back">← Back</button>
     <button id="continue">Continue →</button>
@@ -179,19 +112,20 @@
     <button id="dark-mode-toggle">🌙</button>
   </div>
 
-  <div id="now-playing">Now Playing: <span id="current-song">None</span></div>
+  <div id="now-playing" style="text-align:center; margin-top:20px;">
+    Now Playing: <span id="current-song">None</span>
+  </div>
   <audio id="audio" controls autoplay></audio>
-  <div id="playlist"></div>
-
-  <div id="letter-count"></div>
+  <div id="playlist" style="text-align:center;"></div>
 
   <script>
     const docUrl = "https://docs.google.com/document/d/e/2PACX-1vTqZBPA3iIzbIUmz-NTlIRPVxPzbh3QhcrmsyFGOBnjMmVymXiEJIkkViykoKdJag69HVtM8P4t36zW/pub";
+
     const container = document.getElementById('story-container');
     const button = document.getElementById('continue');
     const backButton = document.getElementById('back');
     const pageSelect = document.getElementById('page-select');
-    const letterCounter = document.getElementById('letter-count');
+    const specialTitle = document.getElementById('special-title');
 
     let pages = [];
     let currentPage = 0;
@@ -203,12 +137,12 @@
         const htmlDoc = parser.parseFromString(data, 'text/html');
         let text = htmlDoc.body.innerText;
 
-        text = text.replace(/^Published using Google Docs\s*/, '').replace(/[\u200B-\u200D\uFEFF]/g, '');
-        pages = text.split("===PAGE===").map(p => p.trim());
+        text = text.replace(/^Published using Google Docs\s*/, '');
+        text = text.replace(/[\u200B-\u200D\uFEFF]/g, '');
+        pages = text.includes("===PAGE===") ? text.split("===PAGE===") : [text];
 
-        // Remove garbage pages from beginning and end
-        while (pages.length > 0 && pages[0].match(/(lst-kix|Report abuse|Learn more|font-family|table)/i)) pages.shift();
-        while (pages.length > 0 && pages[pages.length - 1].match(/(lst-kix|font-family|table)/i)) pages.pop();
+        // Clean up pages
+        pages = pages.map(p => p.trim()).filter(p => p && !p.toLowerCase().includes("learn more") && !p.includes("lst-"));
 
         pages.forEach((_, i) => {
           const option = document.createElement("option");
@@ -230,12 +164,26 @@
       container.classList.remove("visible");
 
       setTimeout(() => {
-        container.innerText = pages[currentPage] || "(Blank)";
+        const pageContent = pages[currentPage] || "(Blank)";
+        container.innerText = pageContent;
         container.classList.add("visible");
+
+        // Special Titles (Pages 20, 44, 45 are 0-based indexes 19, 43, 44)
+        if (currentPage === 19) {
+          specialTitle.innerText = "Carpe Diem";
+          specialTitle.classList.remove("hidden");
+        } else if (currentPage === 43) {
+          specialTitle.innerText = "Mi cielo";
+          specialTitle.classList.remove("hidden");
+        } else if (currentPage === 44) {
+          specialTitle.innerText = "The Thought of You";
+          specialTitle.classList.remove("hidden");
+        } else {
+          specialTitle.classList.add("hidden");
+        }
 
         document.getElementById("progress").innerText = `Page ${currentPage + 1} of ${pages.length}`;
         pageSelect.value = currentPage;
-        letterCounter.innerText = `Letter #${currentPage + 1}`;
         button.style.display = (currentPage < pages.length - 1) ? "inline-block" : "none";
         backButton.style.display = (currentPage > 0) ? "inline-block" : "none";
         localStorage.setItem("lastPage", currentPage);
@@ -250,18 +198,18 @@
       if (e.key === "ArrowRight") button.click();
       if (e.key === "ArrowLeft") backButton.click();
     });
-
-    // Toggle font
+    // Font toggle
     document.getElementById("font-toggle").onclick = () => {
-      const f = container.style.fontFamily;
-      container.style.fontFamily = f.includes("sans") ? "Georgia, serif" : "Arial, sans-serif";
+      const current = container.style.fontFamily;
+      container.style.fontFamily = current.includes("sans-serif") ? "'Playfair Display', serif" : "Arial, sans-serif";
     };
 
-    // Text size
+    // Text size controls
     document.getElementById("text-size-smaller").onclick = () => {
       const size = parseFloat(getComputedStyle(container).fontSize);
       container.style.fontSize = Math.max(size - 1, 12) + "px";
     };
+
     document.getElementById("text-size-larger").onclick = () => {
       const size = parseFloat(getComputedStyle(container).fontSize);
       container.style.fontSize = (size + 1) + "px";
@@ -273,7 +221,7 @@
       document.body.classList.toggle("light-mode");
     };
 
-    // Music player
+    // Music player setup
     const playlist = [
       { title: "Let You Break My Heart Again", src: "Music/let_you_break_my_heart_again.mp3" },
       { title: "Mia and Sebastian’s Theme", src: "Music/hauser_mia_and_sebastian_theme.mp3" },
