@@ -183,9 +183,17 @@
         let text = htmlDoc.body.innerText;
 
         text = text.replace(/^Published using Google Docs\s*/, '').replace(/[\u200B-\u200D\uFEFF]/g, '');
-        pages = text.includes("===PAGE===") ? text.split("===PAGE===") : [text];
-        pages = pages.map(p => p.trim()).filter(p => p && !p.toLowerCase().includes("learn more") && !p.includes("lst-"));
+       pages = text.includes("===PAGE===") ? text.split("===PAGE===") : [text];
 
+// Filter out empty or system-generated pages at the start
+while (pages.length && (
+  !pages[0].trim() ||
+  pages[0].toLowerCase().includes("report abuse") ||
+  pages[0].toLowerCase().includes("learn more") ||
+  pages[0].toLowerCase().includes("lst-")
+)) {
+  pages.shift();
+}
         pages.forEach((_, i) => {
           const option = document.createElement("option");
           option.value = i;
