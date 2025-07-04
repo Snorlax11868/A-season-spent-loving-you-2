@@ -111,169 +111,92 @@
   <div id="now-playing">Now Playing: <span id="current-song">None</span></div>
   <audio id="audio" controls autoplay></audio>
   <div id="playlist"></div>
-  <script>
-const docUrl = "https://docs.google.com/document/d/e/2PACX-1vTqZBPA3iIzbIUmz-NTlIRPVxPzbh3QhcrmsyFGOBnjMmVymXiEJIkkViykoKdJag69HVtM8P4t36zW/pub";
-const container = document.getElementById("page-content");
-const specialTitle = document.getElementById("special-title");
-const pageSelect = document.getElementById("page-select");
-const back = document.getElementById("back");
-const next = document.getElementById("continue");
-const letterTag = document.getElementById("letter-tag");
-const bookmarkBtn = document.getElementById("bookmark");
-
-let pages = [];
-let currentPage = 0;
-let bookmarks = JSON.parse(localStorage.getItem("bookmarks") || "[]");
-
-const specialPages = {
-  19: "Carpe Diem",
-  43: "Mi cielo",
-  44: "The Thought of You"
+<script>
+const specialTitles = {
+  20: "Carpe Diem",
+  44: "Mi cielo",
+  45: "The Thought of You"
 };
 
-function typeWriterEffect(target, text, delay = 20, callback) {
-  target.textContent = "";
+let isTyping = false;
+let typingTimeout;
+
+function typeText(container, text, callback, delay = 20) {
+  clearTimeout(typingTimeout);
+  container.innerHTML = "";
   let i = 0;
-  function type() {
+  isTyping = true;
+
+  function typeChar() {
     if (i < text.length) {
-      target.textContent += text.charAt(i);
+      container.innerHTML += text.charAt(i);
       i++;
-      setTimeout(type, delay);
-    } else if (callback) {
-      callback();
+      typingTimeout = setTimeout(typeChar, delay);
+    } else {
+      isTyping = false;
+      if (callback) callback();
     }
   }
-  type();
+  typeChar();
 }
 
 function showPage() {
-  const content = pages[currentPage] || "(blank)";
-  const isSpecial = specialPages.hasOwnProperty(currentPage);
-  specialTitle.innerText = isSpecial ? specialPages[currentPage] : "";
-  container.textContent = "";
+  clearTimeout(typingTimeout);
+  container.classList.remove("visible");
 
-  document.getElementById("progress").innerText = `Page ${currentPage + 1} of ${pages.length}`;
-  pageSelect.value = currentPage;
-  letterTag.innerText = `Letter #${currentPage + 1}`;
+  const pageContent = pages[currentPage]?.trim() || "(Blank)";
+  const title = specialTitles[currentPage];
 
-  if (isSpecial) {
-    typeWriterEffect(container, content, 10);
-  } else {
-    container.innerText = content;
-  }
+  setTimeout(() => {
+    if (title) {
+      container.innerHTML = `<div class="special-title">${title}</div>`;
+      const bodyText = pageContent;
+      const bodyDiv = document.createElement("div");
+      bodyDiv.style.marginTop = "1em";
+      container.appendChild(bodyDiv);
 
-  back.style.display = currentPage > 0 ? "inline-block" : "none";
-  next.style.display = currentPage < pages.length - 1 ? "inline-block" : "none";
-
-  localStorage.setItem("lastPage", currentPage);
-}
-
-fetch(docUrl)
-  .then(res => res.text())
-  .then(text => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(text, "text/html");
-    let raw = doc.body.innerText;
-    raw = raw.replace(/^Published using Google Docs\s*/, '').replace(/[\u200B-\u200D\uFEFF]/g, '');
-    pages = raw.split("===PAGE===").map(p => p.trim()).filter(Boolean);
-    pages.forEach((_, i) => {
-      const opt = document.createElement("option");
-      opt.value = i;
-      opt.textContent = `Page ${i + 1}`;
-      pageSelect.appendChild(opt);
-    });
-    const saved = parseInt(localStorage.getItem("lastPage"));
-    if (!isNaN(saved)) currentPage = saved;
-    showPage();
-  });
-
-// Navigation
-next.onclick = () => {
-  if (currentPage < pages.length - 1) currentPage++;
-  showPage();
-};
-back.onclick = () => {
-  if (currentPage > 0) currentPage--;
-  showPage();
-};
-pageSelect.onchange = () => {
-  currentPage = parseInt(pageSelect.value);
-  showPage();
-};
-
-// Theme and font toggle
-document.getElementById("dark-mode-toggle").onclick = () => {
-  document.body.classList.toggle("dark-mode");
-  document.body.classList.toggle("light-mode");
-};
-document.getElementById("font-toggle").onclick = () => {
-  container.style.fontFamily = container.style.fontFamily.includes("sans") ? "Georgia, serif" : "Arial, sans-serif";
-};
-
-// Bookmark toggle
-bookmarkBtn.onclick = () => {
-  const i = bookmarks.indexOf(currentPage);
-  if (i !== -1) {
-    bookmarks.splice(i, 1);
-    alert("Bookmark removed.");
-  } else {
-    bookmarks.push(currentPage);
-    alert("Bookmarked!");
-  }
-  localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
-};
-
-// Jump to bookmarks if any exist
-if (bookmarks.length > 0) {
-  const jumpBtn = document.createElement("button");
-  jumpBtn.innerText = "📑 View Bookmarks";
-  jumpBtn.onclick = () => {
-    const choice = prompt("Bookmarked Pages:\n" + bookmarks.map(i => `Letter #${i + 1}`).join("\n") + "\nEnter letter number:");
-    const index = parseInt(choice) - 1;
-    if (!isNaN(index) && index >= 0 && index < pages.length) {
-      currentPage = index;
-      showPage();
+      typeText(bodyDiv, bodyText, () => {
+        container.classList.add("visible");
+      });
+    } else {
+      typeText(container, pageContent, () => {
+        container.classList.add("visible");
+      });
     }
-  };
-  document.getElementById("controls").appendChild(jumpBtn);
+
+    document.getElementById("progress").innerText =
+      `Page ${currentPage + 1} of ${pages.length}`;
+    pageSelect.value = currentPage;
+    button.style.display = currentPage < pages.length - 1 ? "inline-block" : "none";
+    backButton.style.display = currentPage > 0 ? "inline-block" : "none";
+    localStorage.setItem("lastPage", currentPage);
+  }, 100);
 }
 
-// Music
-const playlist = [
-  { title: "Let You Break My Heart Again", src: "Music/let_you_break_my_heart_again.mp3" },
-  { title: "Mia and Sebastian’s Theme", src: "Music/hauser_mia_and_sebastian_theme.mp3" },
-  { title: "Merry Go Round of Life", src: "Music/merry_go_round_of_life.mp3" }
-];
+button.onclick = () => {
+  if (!isTyping && currentPage < pages.length - 1) {
+    currentPage++;
+    showPage();
+  }
+};
 
-const audio = document.getElementById("audio");
-const currentSong = document.getElementById("current-song");
-const playlistDiv = document.getElementById("playlist");
-let currentTrack = parseInt(localStorage.getItem("lastTrack")) || 0;
+backButton.onclick = () => {
+  if (!isTyping && currentPage > 0) {
+    currentPage--;
+    showPage();
+  }
+};
 
-function loadSong(index) {
-  audio.src = playlist[index].src;
-  currentSong.textContent = playlist[index].title;
-  localStorage.setItem("lastTrack", index);
-  audio.play().catch(() => {});
-}
+pageSelect.onchange = () => {
+  if (!isTyping) {
+    currentPage = parseInt(pageSelect.value);
+    showPage();
+  }
+};
 
-audio.addEventListener("ended", () => {
-  currentTrack = (currentTrack + 1) % playlist.length;
-  loadSong(currentTrack);
-});
-
-playlist.forEach((song, index) => {
-  const btn = document.createElement("button");
-  btn.textContent = song.title;
-  btn.onclick = () => {
-    currentTrack = index;
-    loadSong(currentTrack);
-  };
-  playlistDiv.appendChild(btn);
-});
-
-window.addEventListener("load", () => {
-  loadSong(currentTrack);
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowRight") button.click();
+  if (e.key === "ArrowLeft") backButton.click();
 });
 </script>
 </body>
