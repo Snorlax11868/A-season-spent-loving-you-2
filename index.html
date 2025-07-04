@@ -38,19 +38,18 @@
       text-align: center;
       margin-bottom: 10px;
     }
-    #story-container {
-      white-space: pre-wrap;
-      max-width: 700px;
-      margin: 0 auto 20px;
-      font-size: 1.2em;
-      padding: 20px;
-      background: #fff;
-      color: #111;
-      border-radius: 8px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.1);
-      min-height: 300px;
-      transition: background 0.3s, color 0.3s;
-    }
+   #story-container {
+  position: relative;       /* Ensure proper stacking */
+  z-index: 5;              /* Bring it forward */
+  background: #fff;        /* Solid white (light) */
+  /* ... other styling ... */
+}
+
+/* For dark mode */
+body.dark-mode #story-container {
+  background: #2e2e2e;      /* Solid dark */
+}
+
     body.dark-mode #story-container {
       background: #2e2e2e;
       color: #eaeaea;
