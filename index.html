@@ -4,200 +4,276 @@
   <meta charset="UTF-8" />
   <title>A Season Spent Loving You</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Great+Vibes&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display&display=swap" rel="stylesheet">
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      font-family: 'Playfair Display', serif;
       background: #f9f6f3;
       color: #111;
-      transition: background 0.5s, color 0.5s;
+      font-family: 'Playfair Display', serif;
+      transition: background 0.4s ease, color 0.4s ease;
     }
+
     body.dark-mode {
       background: #1a1a1d;
       color: #eaeaea;
     }
+
     h1 {
       font-family: 'Great Vibes', cursive;
       text-align: center;
-      margin-top: 30px;
-      font-size: 2.5em;
       color: #a84565;
+      margin-top: 20px;
     }
+
+    .tagline {
+      text-align: center;
+      font-style: italic;
+      font-size: 0.9em;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    #progress, #page-selector {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
     #story-container {
-      max-width: 700px;
-      margin: 30px auto;
-      background: white;
+      white-space: pre-wrap;
+      max-width: 800px;
+      margin: 0 auto;
       padding: 20px;
+      font-size: 1.1em;
+      background: #fff;
       border-radius: 10px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-      transition: background 0.4s;
-      min-height: 300px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      min-height: 250px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
     }
+
     body.dark-mode #story-container {
-      background: #2a2a2d;
+      background: #2e2e2e;
+      color: #eaeaea;
     }
-    #special-title {
-      display: block;
+
+    .visible {
+      opacity: 1;
+    }
+
+    .special-title {
+      text-align: center;
       font-family: 'Great Vibes', cursive;
       font-size: 1.8em;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
       color: #a84565;
+    }
+
+    #controls, #playlist, #now-playing {
       text-align: center;
+      margin: 10px;
     }
-    #page-content {
-      white-space: pre-wrap;
-      font-size: 1.1em;
-      line-height: 1.6;
-      display: block;
-    }
-    #controls, #progress, #page-selector, #bookmark-control {
-      text-align: center;
-      margin: 15px 0;
-    }
+
     button, select {
-      padding: 8px 14px;
-      margin: 4px;
+      padding: 6px 14px;
+      margin: 5px;
       font-size: 1em;
-      cursor: pointer;
+      border-radius: 4px;
     }
-    #letter-tag {
-      text-align: right;
-      margin-right: 30px;
+
+    #letter-number {
+      position: fixed;
+      bottom: 10px;
+      right: 12px;
       font-size: 0.85em;
-      opacity: 0.6;
+      color: #999;
     }
-    #now-playing {
-      text-align: center;
-      margin-top: 30px;
-      font-size: 0.95em;
-      animation: pulse 2s infinite;
-      color: #444;
+
+    audio {
+      display: block;
+      margin: 10px auto;
     }
-    #playlist {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    @keyframes pulse {
-      0%,100% { opacity: 0.6; }
-      50% { opacity: 1; }
+
+    #playlist button {
+      margin: 2px;
+      font-size: 0.9em;
     }
   </style>
 </head>
 <body class="light-mode">
   <h1>A Season Spent Loving You</h1>
-  <div id="progress"></div>
+  <p class="tagline">Letters written when the world was asleep</p>
 
+  <div id="progress"></div>
   <div id="page-selector">
-    <label>Jump to page:</label>
+    Jump to page:
     <select id="page-select"></select>
   </div>
 
-  <div id="story-container">
-    <span id="special-title"></span>
-    <span id="page-content"></span>
-  </div>
-  <div id="letter-tag"></div>
+  <div id="story-container">Loading...</div>
 
   <div id="controls">
     <button id="back">← Back</button>
     <button id="continue">Continue →</button>
-    <button id="bookmark">⭐ Bookmark</button>
     <button id="font-toggle">Toggle Font</button>
+    <button id="text-size-smaller">A−</button>
+    <button id="text-size-larger">A+</button>
     <button id="dark-mode-toggle">🌙</button>
   </div>
 
   <div id="now-playing">Now Playing: <span id="current-song">None</span></div>
-  <audio id="audio" controls autoplay></audio>
+  <audio id="audio" controls></audio>
   <div id="playlist"></div>
-<script>
-const specialTitles = {
-  20: "Carpe Diem",
-  44: "Mi cielo",
-  45: "The Thought of You"
-};
 
-let isTyping = false;
-let typingTimeout;
+  <div id="letter-number"></div>
 
-function typeText(container, text, callback, delay = 20) {
-  clearTimeout(typingTimeout);
-  container.innerHTML = "";
-  let i = 0;
-  isTyping = true;
+  <script>
+    const docUrl = "https://docs.google.com/document/d/e/2PACX-1vTqZBPA3iIzbIUmz-NTlIRPVxPzbh3QhcrmsyFGOBnjMmVymXiEJIkkViykoKdJag69HVtM8P4t36zW/pub";
+    const container = document.getElementById('story-container');
+    const back = document.getElementById('back');
+    const next = document.getElementById('continue');
+    const select = document.getElementById('page-select');
+    const letterNumber = document.getElementById('letter-number');
 
-  function typeChar() {
-    if (i < text.length) {
-      container.innerHTML += text.charAt(i);
-      i++;
-      typingTimeout = setTimeout(typeChar, delay);
-    } else {
-      isTyping = false;
-      if (callback) callback();
+    let pages = [], currentPage = 0;
+    const typingSpeed = 10; // ms per character
+
+    const specialTitles = {
+      20: "Carpe Diem",
+      44: "Mi cielo",
+      45: "The Thought of You"
+    };
+
+    fetch(docUrl).then(r => r.text()).then(data => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(data, 'text/html');
+      let text = doc.body.innerText.replace(/^Published.*\n/, '').replace(/[\u200B-\u200D\uFEFF]/g, '');
+      pages = text.split("===PAGE===").map(p => p.trim()).filter(p => !/^report abuse/i.test(p) && !/lst-/i.test(p));
+      for (let i = 0; i < pages.length; i++) {
+        let opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = `Page ${i + 1}`;
+        select.appendChild(opt);
+      }
+      const saved = parseInt(localStorage.getItem("lastPage"));
+      if (!isNaN(saved) && saved >= 0 && saved < pages.length) currentPage = saved;
+      select.value = currentPage;
+      showPage();
+    });
+
+    function showPage() {
+      container.classList.remove("visible");
+      container.innerHTML = "";
+      const pageText = pages[currentPage];
+      const title = specialTitles[currentPage] || "";
+      setTimeout(() => {
+        if (title) {
+          const titleEl = document.createElement("div");
+          titleEl.className = "special-title";
+          container.appendChild(titleEl);
+          typeWriter(title, titleEl, () => {
+            const p = document.createElement("div");
+            container.appendChild(p);
+            typeWriter(pageText, p, () => {
+              container.classList.add("visible");
+            });
+          });
+        } else {
+          const p = document.createElement("div");
+          container.appendChild(p);
+          typeWriter(pageText, p, () => {
+            container.classList.add("visible");
+          });
+        }
+        updateUI();
+      }, 100);
     }
-  }
-  typeChar();
-}
 
-function showPage() {
-  clearTimeout(typingTimeout);
-  container.classList.remove("visible");
-
-  const pageContent = pages[currentPage]?.trim() || "(Blank)";
-  const title = specialTitles[currentPage];
-
-  setTimeout(() => {
-    if (title) {
-      container.innerHTML = `<div class="special-title">${title}</div>`;
-      const bodyText = pageContent;
-      const bodyDiv = document.createElement("div");
-      bodyDiv.style.marginTop = "1em";
-      container.appendChild(bodyDiv);
-
-      typeText(bodyDiv, bodyText, () => {
-        container.classList.add("visible");
-      });
-    } else {
-      typeText(container, pageContent, () => {
-        container.classList.add("visible");
-      });
+    function updateUI() {
+      document.getElementById("progress").textContent = `Page ${currentPage + 1} of ${pages.length}`;
+      select.value = currentPage;
+      localStorage.setItem("lastPage", currentPage);
+      back.style.display = currentPage > 0 ? "inline-block" : "none";
+      next.style.display = currentPage < pages.length - 1 ? "inline-block" : "none";
+      letterNumber.textContent = `Letter #${currentPage + 1}`;
     }
 
-    document.getElementById("progress").innerText =
-      `Page ${currentPage + 1} of ${pages.length}`;
-    pageSelect.value = currentPage;
-    button.style.display = currentPage < pages.length - 1 ? "inline-block" : "none";
-    backButton.style.display = currentPage > 0 ? "inline-block" : "none";
-    localStorage.setItem("lastPage", currentPage);
-  }, 100);
-}
+    function typeWriter(text, el, cb) {
+      let i = 0;
+      function type() {
+        if (i < text.length) {
+          el.textContent += text.charAt(i++);
+          setTimeout(type, typingSpeed);
+        } else {
+          cb && cb();
+        }
+      }
+      type();
+    }
 
-button.onclick = () => {
-  if (!isTyping && currentPage < pages.length - 1) {
-    currentPage++;
-    showPage();
-  }
-};
+    next.onclick = () => { if (currentPage < pages.length - 1) currentPage++; showPage(); };
+    back.onclick = () => { if (currentPage > 0) currentPage--; showPage(); };
+    select.onchange = () => { currentPage = parseInt(select.value); showPage(); };
 
-backButton.onclick = () => {
-  if (!isTyping && currentPage > 0) {
-    currentPage--;
-    showPage();
-  }
-};
+    document.addEventListener("keydown", e => {
+      if (e.key === "ArrowRight") next.click();
+      if (e.key === "ArrowLeft") back.click();
+    });
 
-pageSelect.onchange = () => {
-  if (!isTyping) {
-    currentPage = parseInt(pageSelect.value);
-    showPage();
-  }
-};
+    document.getElementById("font-toggle").onclick = () => {
+      container.style.fontFamily = container.style.fontFamily.includes("sans") ? "Georgia, serif" : "Arial, sans-serif";
+    };
+    document.getElementById("text-size-smaller").onclick = () => {
+      let size = parseFloat(getComputedStyle(container).fontSize);
+      container.style.fontSize = Math.max(12, size - 1) + "px";
+    };
+    document.getElementById("text-size-larger").onclick = () => {
+      let size = parseFloat(getComputedStyle(container).fontSize);
+      container.style.fontSize = (size + 1) + "px";
+    };
+    document.getElementById("dark-mode-toggle").onclick = () => {
+      document.body.classList.toggle("dark-mode");
+      document.body.classList.toggle("light-mode");
+    };
 
-document.addEventListener("keydown", e => {
-  if (e.key === "ArrowRight") button.click();
-  if (e.key === "ArrowLeft") backButton.click();
-});
-</script>
+    const playlist = [
+      { title: "Let You Break My Heart Again", src: "Music/let_you_break_my_heart_again.mp3" },
+      { title: "Mia and Sebastian’s Theme", src: "Music/hauser_mia_and_sebastian_theme.mp3" },
+      { title: "Merry Go Round of Life", src: "Music/merry_go_round_of_life.mp3" }
+    ];
+
+    const audio = document.getElementById("audio");
+    const songTitle = document.getElementById("current-song");
+    const playlistDiv = document.getElementById("playlist");
+    let track = parseInt(localStorage.getItem("lastTrack")) || 0;
+
+    function loadTrack(i) {
+      audio.src = playlist[i].src;
+      songTitle.textContent = playlist[i].title;
+      localStorage.setItem("lastTrack", i);
+      audio.play().catch(() => {});
+    }
+
+    audio.addEventListener("ended", () => {
+      track = (track + 1) % playlist.length;
+      loadTrack(track);
+    });
+
+    playlist.forEach((song, i) => {
+      const b = document.createElement("button");
+      b.textContent = song.title;
+      b.onclick = () => {
+        track = i;
+        loadTrack(i);
+      };
+      playlistDiv.appendChild(b);
+    });
+
+    window.addEventListener("load", () => {
+      loadTrack(track);
+    });
+  </script>
 </body>
 </html>
