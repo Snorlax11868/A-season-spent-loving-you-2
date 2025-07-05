@@ -1,111 +1,339 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
+  <meta charset="UTF-8">
   <title>A Season Spent Loving You</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Great+Vibes&display=swap" rel="stylesheet">
   <style>
-    /* Global + background */
     html, body {
-      margin:0; padding:0;
-      font-family:'Playfair Display', serif;
-      background:#f9f6f3; color:#111;
-      height:100vh; position:relative;
-      overflow:hidden;
-      transition: background .5s, color .5s;
+      margin: 0;
+      padding: 0;
+      font-family: 'Playfair Display', serif;
+      background: #f9f6f3;
+      color: #111;
+      transition: background 0.5s, color 0.5s;
+      overflow-x: hidden;
     }
     body.dark-mode {
-      background:#1a1a1d; color:#eaeaea;
+      background: #1a1a1d;
+      color: #eaeaea;
     }
 
-    /* Light-mode petal animation */
-    #petal-bg {
-      position:absolute; top:0; left:0; right:0; bottom:0;
-      pointer-events:none; z-index:-2;
-      background:url('petal.png') repeat; /* your petal sprite */
-      animation: drift 20s linear infinite;
-    }
-    @keyframes drift {
-      from { background-position: 0 0; }
-      to   { background-position: 0 -1000px; }
-    }
-
-    /* Theme-sensitive overlay */
     body::before {
-      content:""; position:fixed; inset:0; z-index:-1;
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      opacity: 0.05;
       background: url('https://upload.wikimedia.org/wikipedia/commons/0/0e/Epiphyllum_oxypetalum_%28flower%29.jpg') center/cover no-repeat fixed;
-      opacity:.05; transition: opacity .5s;
     }
     body.dark-mode::before {
-      background: radial-gradient(ellipse at center, rgba(168,69,101,.1) 0%, rgba(26,26,29,1) 100%);
+      background: radial-gradient(circle, rgba(168,69,101,0.2), #1a1a1d);
+      opacity: 0.3;
     }
 
-    /* Heading */
-    h1 { ... } /* same as before */
-    .tagline { ... }
+    h1 {
+      font-family: 'Great Vibes', cursive;
+      text-align: center;
+      margin: 20px;
+      font-size: 2.5em;
+      color: #a84565;
+    }
 
-    /* Story container */
+    .tagline {
+      text-align: center;
+      font-size: 0.95em;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    #progress, #page-selector, #controls {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
     #story-container {
-      max-width:700px; margin:20px auto;
-      padding:20px;
-      background:#fff; color:#111;
-      border-radius:8px; box-shadow:0 0 8px rgba(0,0,0,.1);
-      min-height:250px; opacity:0;
-      transition: border-color .5s;
+      max-width: 700px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      color: #111;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      min-height: 250px;
+      transition: background 0.4s, color 0.4s;
+      font-size: 1.2em;
+      white-space: pre-wrap;
     }
     body.dark-mode #story-container {
-      background:#2e2e2e; color:#eaeaea;
+      background: #2e2e2e;
+      color: #eaeaea;
     }
 
-    /* Rose-edge for special pages */
     .rose-border {
-      border: 4px solid #a84565;
+      border: 3px solid #a84565;
     }
 
-    /* Special Title */
-    .special-title { ... }
+    .special-title {
+      font-family: 'Great Vibes', cursive;
+      font-size: 2em;
+      color: #a84565;
+      text-align: center;
+      margin-bottom: 20px;
+    }
 
-    /* Controls, music, visualizer, etc. */
-    /* Add a border glow when audio plays */
+    .fade {
+      opacity: 0;
+      transition: opacity 0.6s ease-in-out;
+    }
+
+    .visible {
+      opacity: 1 !important;
+    }
+
+    button, select {
+      margin: 5px;
+      padding: 8px 14px;
+      font-size: 1em;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+    }
+
+    #music-player {
+      text-align: center;
+      margin-top: 30px;
+    }
+
     #music-player.playing {
-      box-shadow: 0 0 10px #a84565;
+      box-shadow: 0 0 12px #a84565;
+      padding: 10px;
+      border-radius: 8px;
     }
-    #visualizer .bar { ... }
+
+    #now-playing {
+      margin: 10px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    #visualizer {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      height: 20px;
+      margin: 10px 0;
+    }
+
+    .bar {
+      width: 4px;
+      height: 20px;
+      background: #a84565;
+      animation: bounce 1s infinite ease-in-out;
+    }
+
+    .bar:nth-child(2) { animation-delay: 0.2s; }
+    .bar:nth-child(3) { animation-delay: 0.4s; }
+    .bar:nth-child(4) { animation-delay: 0.6s; }
+    .bar:nth-child(5) { animation-delay: 0.8s; }
+
+    @keyframes bounce {
+      0%, 100% { transform: scaleY(0.5); }
+      50% { transform: scaleY(1); }
+    }
   </style>
 </head>
 <body class="light-mode">
-  <div id="petal-bg"></div>
   <h1>A Season Spent Loving You</h1>
   <div class="tagline">Letters written when the world was asleep</div>
+
   <div id="progress"></div>
   <div id="page-selector">Jump to: <select id="page-select"></select></div>
-  <div id="story-container"></div>
+  <div id="story-container" class="fade">Loading...</div>
 
   <div id="controls">
-    <!-- buttons and toggles -->
+    <button id="back">← Back</button>
+    <button id="continue">Continue →</button>
+    <button id="font-toggle">Toggle Font</button>
+    <button id="text-size-smaller">A−</button>
+    <button id="text-size-larger">A+</button>
+    <button id="dark-mode-toggle">🌙</button>
+    <button id="bookmark">🔖 Bookmark</button>
+    <button id="go-bookmark">📘 Go to Bookmark</button>
   </div>
 
   <div id="music-player">
-    <div id="visualizer"><!-- bars here --></div>
-    🎵 Now Playing: <span id="current-song">None</span><br/>
-    <audio id="audio"></audio>
+    <div id="now-playing">Now Playing: <span id="current-song">None</span></div>
+    <div id="visualizer">
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+    </div>
+    <audio id="audio" controls autoplay></audio>
     <div id="playlist"></div>
   </div>
-  <script>
-    // Fetch + typewriter + border logic
-    // audio + play/pause glow
 
-    // On showPage(), after typing, do:
-    if(special[page]) {
-      story.classList.add('rose-border');
-    } else {
-      story.classList.remove('rose-border');
+  <script>
+    const docUrl = "https://docs.google.com/document/d/e/2PACX-1vTqZBPA3iIzbIUmz-NTlIRPVxPzbh3QhcrmsyFGOBnjMmVymXiEJIkkViykoKdJag69HVtM8P4t36zW/pub";
+    const container = document.getElementById("story-container");
+    const back = document.getElementById("back");
+    const next = document.getElementById("continue");
+    const pageSelect = document.getElementById("page-select");
+    const musicPlayer = document.getElementById("music-player");
+
+    let pages = [];
+    let currentPage = 0;
+    const specialTitles = {
+      19: "Carpe Diem",
+      43: "Mi cielo",
+      44: "The Thought of You"
+    };
+
+    fetch(docUrl)
+      .then(res => res.text())
+      .then(data => {
+        const html = new DOMParser().parseFromString(data, "text/html");
+        let text = html.body.innerText.replace(/^Published using Google Docs\s*/, "").trim();
+        pages = text.split("===PAGE===").map(p => p.trim()).filter(Boolean);
+        pages.forEach((_, i) => {
+          const opt = document.createElement("option");
+          opt.value = i;
+          opt.textContent = `Page ${i + 1}`;
+          pageSelect.appendChild(opt);
+        });
+
+        const saved = parseInt(localStorage.getItem("lastPage"));
+        currentPage = !isNaN(saved) && saved < pages.length ? saved : 0;
+        showPage();
+      });
+
+    function typeWriter(text, target, speed = 25, callback) {
+      let i = 0;
+      target.innerHTML = "";
+      function type() {
+        if (i < text.length) {
+          target.innerHTML += text.charAt(i++);
+          setTimeout(type, speed);
+        } else if (callback) {
+          callback();
+        }
+      }
+      type();
     }
 
-    // In play(i):
-    musicPlayer.classList.add('playing');
-    audio.onpause = () => musicPlayer.classList.remove('playing');
+    function showPage() {
+      container.classList.remove("visible", "rose-border");
+      container.innerHTML = "";
+      setTimeout(() => {
+        const title = specialTitles[currentPage];
+        const content = pages[currentPage] || "(Blank)";
+        if (title) {
+          const t = document.createElement("div");
+          t.className = "special-title";
+          container.appendChild(t);
+          typeWriter(title + "\n", t, 30, () => {
+            const c = document.createElement("div");
+            container.appendChild(c);
+            typeWriter(content, c);
+          });
+          container.classList.add("rose-border");
+        } else {
+          typeWriter(content, container);
+        }
+
+        document.getElementById("progress").textContent = `Page ${currentPage + 1} of ${pages.length}`;
+        pageSelect.value = currentPage;
+        back.style.display = currentPage > 0 ? "inline-block" : "none";
+        next.style.display = currentPage < pages.length - 1 ? "inline-block" : "none";
+        localStorage.setItem("lastPage", currentPage);
+        setTimeout(() => container.classList.add("visible"), 100);
+      }, 100);
+    }
+
+    next.onclick = () => {
+      if (currentPage < pages.length - 1) currentPage++;
+      showPage();
+    };
+
+    back.onclick = () => {
+      if (currentPage > 0) currentPage--;
+      showPage();
+    };
+
+    pageSelect.onchange = () => {
+      currentPage = parseInt(pageSelect.value);
+      showPage();
+    };
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "ArrowRight") next.click();
+      if (e.key === "ArrowLeft") back.click();
+    });
+
+    document.getElementById("font-toggle").onclick = () => {
+      const f = container.style.fontFamily;
+      container.style.fontFamily = f.includes("sans") ? "Georgia, serif" : "Arial, sans-serif";
+    };
+    document.getElementById("text-size-smaller").onclick = () => {
+      const size = parseFloat(getComputedStyle(container).fontSize);
+      container.style.fontSize = Math.max(size - 1, 12) + "px";
+    };
+    document.getElementById("text-size-larger").onclick = () => {
+      const size = parseFloat(getComputedStyle(container).fontSize);
+      container.style.fontSize = (size + 1) + "px";
+    };
+    document.getElementById("dark-mode-toggle").onclick = () => {
+      document.body.classList.toggle("dark-mode");
+      document.body.classList.toggle("light-mode");
+    };
+
+    document.getElementById("bookmark").onclick = () => {
+      localStorage.setItem("bookmark", currentPage);
+      alert("Bookmarked!");
+    };
+    document.getElementById("go-bookmark").onclick = () => {
+      const mark = parseInt(localStorage.getItem("bookmark"));
+      if (!isNaN(mark)) {
+        currentPage = mark;
+        showPage();
+      }
+    };
+
+    // 🎵 Music
+    const playlist = [
+      { title: "Let You Break My Heart Again", src: "Music/let_you_break_my_heart_again.mp3" },
+      { title: "Mia and Sebastian’s Theme", src: "Music/hauser_mia_and_sebastian_theme.mp3" },
+      { title: "Merry Go Round of Life", src: "Music/merry_go_round_of_life.mp3" }
+    ];
+    const audio = document.getElementById("audio");
+    const now = document.getElementById("current-song");
+    const playlistDiv = document.getElementById("playlist");
+    let track = parseInt(localStorage.getItem("lastTrack")) || 0;
+
+    function load(i) {
+      audio.src = playlist[i].src;
+      now.textContent = playlist[i].title;
+      localStorage.setItem("lastTrack", i);
+      audio.play();
+    }
+
+    playlist.forEach((song, i) => {
+      const btn = document.createElement("button");
+      btn.textContent = song.title;
+      btn.onclick = () => { track = i; load(track); };
+      playlistDiv.appendChild(btn);
+    });
+
+    audio.addEventListener("ended", () => {
+      track = (track + 1) % playlist.length;
+      load(track);
+    });
+    audio.addEventListener("play", () => musicPlayer.classList.add("playing"));
+    audio.addEventListener("pause", () => musicPlayer.classList.remove("playing"));
+    window.addEventListener("load", () => load(track));
   </script>
 </body>
 </html>
