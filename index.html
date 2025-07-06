@@ -12,8 +12,8 @@
       font-family: 'Playfair Display', serif;
       background: #f9f6f3;
       color: #111;
-      transition: background 0.5s, color 0.5s;
       overflow-x: hidden;
+      transition: background 0.5s, color 0.5s;
     }
 
     body.dark-mode {
@@ -27,28 +27,33 @@
       inset: 0;
       z-index: -1;
       background: url('https://upload.wikimedia.org/wikipedia/commons/0/0e/Epiphyllum_oxypetalum_%28flower%29.jpg') center/cover no-repeat fixed;
-      opacity: 0.04;
-      transition: opacity 0.5s;
+      opacity: 0.05;
+      pointer-events: none;
     }
 
     body.dark-mode::before {
       background: radial-gradient(circle, rgba(168,69,101,0.2), #1a1a1d);
-      opacity: 0.2;
+      opacity: 0.25;
     }
 
     h1 {
       font-family: 'Great Vibes', cursive;
       text-align: center;
-      margin: 20px;
       font-size: 2.5em;
+      margin-top: 20px;
       color: #a84565;
     }
 
     .tagline {
       text-align: center;
-      font-size: 0.95em;
-      color: #666;
-      margin-bottom: 20px;
+      font-style: italic;
+      color: #777;
+      margin-bottom: 15px;
+    }
+
+    #progress, #page-selector {
+      text-align: center;
+      margin-bottom: 10px;
     }
 
     #story-container {
@@ -60,14 +65,9 @@
       border-radius: 8px;
       box-shadow: 0 0 8px rgba(0,0,0,0.1);
       min-height: 250px;
-      font-size: 1.2em;
       white-space: pre-wrap;
-      transition: opacity 0.6s ease-in-out;
-      opacity: 0;
-    }
-
-    .visible {
-      opacity: 1 !important;
+      transition: background 0.3s, color 0.3s;
+      font-size: 1.15em;
     }
 
     body.dark-mode #story-container {
@@ -80,16 +80,21 @@
       font-size: 2em;
       color: #a84565;
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
 
-    .rose-border {
-      border: 3px solid #a84565;
+    .fade {
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
     }
 
-    #controls, #progress, #page-selector {
+    .visible {
+      opacity: 1;
+    }
+
+    #controls {
       text-align: center;
-      margin: 10px 0;
+      margin: 20px 0;
     }
 
     button, select {
@@ -97,68 +102,55 @@
       padding: 8px 14px;
       font-size: 1em;
       cursor: pointer;
+      border-radius: 6px;
       border: none;
-      border-radius: 5px;
-    }
-
-    #music-player {
-      text-align: center;
-      margin-top: 30px;
     }
 
     #now-playing {
-      font-size: 1em;
-      animation: pulse 2s infinite;
-      color: #444;
+      text-align: center;
+      font-size: 0.95em;
+      margin-top: 15px;
+      color: #555;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 0.6; }
-      50% { opacity: 1; }
+    #playlist {
+      text-align: center;
+      margin-top: 10px;
     }
 
-    #visualizer {
-      display: flex;
-      justify-content: center;
-      gap: 4px;
-      height: 20px;
-      margin: 10px 0;
+    #playlist button {
+      margin: 4px;
+      padding: 6px 10px;
+      background: #eee;
     }
 
-    .bar {
-      width: 4px;
-      height: 20px;
-      background: #a84565;
-      animation: bounce 1s infinite ease-in-out;
+    body.dark-mode #playlist button {
+      background: #444;
+      color: white;
     }
 
-    .bar:nth-child(2) { animation-delay: 0.2s; }
-    .bar:nth-child(3) { animation-delay: 0.4s; }
-    .bar:nth-child(4) { animation-delay: 0.6s; }
-    .bar:nth-child(5) { animation-delay: 0.8s; }
-
-    @keyframes bounce {
-      0%, 100% { transform: scaleY(0.5); }
-      50% { transform: scaleY(1); }
+    #petals {
+      pointer-events: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
     }
 
     .petal {
-      position: fixed;
-      width: 15px;
-      height: 15px;
-      background: pink;
-      border-radius: 50%;
+      position: absolute;
+      top: -10px;
+      width: 20px;
+      height: 20px;
+      background: url('https://cdn-icons-png.flaticon.com/512/616/616430.png') no-repeat center/contain;
       opacity: 0.6;
-      pointer-events: none;
-      animation: float 12s linear infinite;
+      animation: fall 12s linear infinite;
     }
 
-    @keyframes float {
-      0% {
-        transform: translateY(-10%) rotate(0deg);
-        opacity: 0.8;
-      }
-      100% {
+    @keyframes fall {
+      to {
         transform: translateY(110vh) rotate(360deg);
         opacity: 0;
       }
@@ -171,7 +163,8 @@
 
   <div id="progress"></div>
   <div id="page-selector">Jump to: <select id="page-select"></select></div>
-  <div id="story-container">Loading...</div>
+
+  <div id="story-container" class="fade">Loading story...</div>
 
   <div id="controls">
     <button id="back">← Back</button>
@@ -180,26 +173,20 @@
     <button id="text-size-smaller">A−</button>
     <button id="text-size-larger">A+</button>
     <button id="dark-mode-toggle">🌙</button>
-    <button id="bookmark">🔖 Bookmark</button>
-    <button id="go-bookmark">📘 Go to Bookmark</button>
   </div>
 
-  <div id="music-player">
-    <div id="now-playing">Now Playing: <span id="current-song">None</span></div>
-    <div id="visualizer">
-      <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
-    </div>
-    <audio id="audio" controls autoplay></audio>
-    <div id="playlist"></div>
-  </div>
+  <div id="now-playing">Now Playing: <span id="current-song">None</span></div>
+  <audio id="audio" controls autoplay></audio>
+  <div id="playlist"></div>
+
+  <div id="petals"></div>
 
   <script>
     const docUrl = "https://docs.google.com/document/d/e/2PACX-1vTqZBPA3iIzbIUmz-NTlIRPVxPzbh3QhcrmsyFGOBnjMmVymXiEJIkkViykoKdJag69HVtM8P4t36zW/pub";
     const container = document.getElementById("story-container");
-    const back = document.getElementById("back");
-    const next = document.getElementById("continue");
     const pageSelect = document.getElementById("page-select");
-    const musicPlayer = document.getElementById("music-player");
+    const next = document.getElementById("continue");
+    const back = document.getElementById("back");
 
     let pages = [];
     let currentPage = 0;
@@ -214,32 +201,38 @@
       .then(data => {
         const html = new DOMParser().parseFromString(data, "text/html");
         let text = html.body.innerText.replace(/^Published using Google Docs\s*/, "").trim();
-        pages = text.split("===PAGE===").map(p => p.trim()).filter(Boolean);
+
+        pages = text
+          .split("===PAGE===")
+          .map(p => p.trim())
+          .filter(p => p && !p.toLowerCase().includes("report abuse") && !p.includes("lst-"));
+
         pages.forEach((_, i) => {
           const opt = document.createElement("option");
           opt.value = i;
           opt.textContent = `Page ${i + 1}`;
           pageSelect.appendChild(opt);
         });
+
         const saved = parseInt(localStorage.getItem("lastPage"));
         currentPage = !isNaN(saved) && saved < pages.length ? saved : 0;
         showPage();
       });
 
-    function typeWriter(text, target, speed = 25, callback) {
+    function typeWriter(text, el, speed = 20, cb) {
+      el.innerHTML = "";
       let i = 0;
-      target.innerHTML = "";
-      function type() {
+      function write() {
         if (i < text.length) {
-          target.innerHTML += text.charAt(i++);
-          setTimeout(type, speed);
-        } else if (callback) callback();
+          el.innerHTML += text.charAt(i++);
+          setTimeout(write, speed);
+        } else if (cb) cb();
       }
-      type();
+      write();
     }
 
     function showPage() {
-      container.classList.remove("visible", "rose-border");
+      container.classList.remove("visible");
       container.innerHTML = "";
       setTimeout(() => {
         const title = specialTitles[currentPage];
@@ -253,7 +246,6 @@
             container.appendChild(c);
             typeWriter(content, c);
           });
-          container.classList.add("rose-border");
         } else {
           typeWriter(content, container);
         }
@@ -270,6 +262,7 @@
     next.onclick = () => { if (currentPage < pages.length - 1) currentPage++; showPage(); };
     back.onclick = () => { if (currentPage > 0) currentPage--; showPage(); };
     pageSelect.onchange = () => { currentPage = parseInt(pageSelect.value); showPage(); };
+
     document.addEventListener("keydown", e => {
       if (e.key === "ArrowRight") next.click();
       if (e.key === "ArrowLeft") back.click();
@@ -292,29 +285,30 @@
       document.body.classList.toggle("light-mode");
     };
 
-    document.getElementById("bookmark").onclick = () => {
-      localStorage.setItem("bookmark", currentPage);
-      alert("Bookmarked!");
-    };
-    document.getElementById("go-bookmark").onclick = () => {
-      const mark = parseInt(localStorage.getItem("bookmark"));
-      if (!isNaN(mark)) {
-        currentPage = mark;
-        showPage();
-      }
-    };
+    // 🌸 Floating petals
+    const petals = document.getElementById("petals");
+    for (let i = 0; i < 15; i++) {
+      const petal = document.createElement("div");
+      petal.className = "petal";
+      petal.style.left = `${Math.random() * 100}vw`;
+      petal.style.animationDuration = `${6 + Math.random() * 6}s`;
+      petal.style.opacity = 0.4 + Math.random() * 0.6;
+      petals.appendChild(petal);
+    }
 
+    // 🎵 Music
     const playlist = [
       { title: "Just Like Chet", src: "Music/Just_Like_Chet.mp3" },
       { title: "There Will Never Be Another You", src: "Music/There_Will_Never_Be_Another_You.mp3" },
       { title: "Merry Go Round of Life", src: "Music/merry_go_round_of_life.mp3" }
     ];
+
     const audio = document.getElementById("audio");
     const now = document.getElementById("current-song");
     const playlistDiv = document.getElementById("playlist");
     let track = parseInt(localStorage.getItem("lastTrack")) || 0;
 
-    function load(i) {
+    function loadTrack(i) {
       audio.src = playlist[i].src;
       now.textContent = playlist[i].title;
       localStorage.setItem("lastTrack", i);
@@ -324,32 +318,18 @@
     playlist.forEach((song, i) => {
       const btn = document.createElement("button");
       btn.textContent = song.title;
-      btn.onclick = () => { track = i; load(track); };
+      btn.onclick = () => { track = i; loadTrack(track); };
       playlistDiv.appendChild(btn);
     });
 
     audio.addEventListener("ended", () => {
       track = (track + 1) % playlist.length;
-      load(track);
+      loadTrack(track);
     });
 
-    audio.addEventListener("play", () => musicPlayer.classList.add("playing"));
-    audio.addEventListener("pause", () => musicPlayer.classList.remove("playing"));
     window.addEventListener("load", () => {
-      load(track);
-      createPetals(30); // 🌸 floating petals
+      loadTrack(track);
     });
-
-    function createPetals(n) {
-      for (let i = 0; i < n; i++) {
-        const petal = document.createElement("div");
-        petal.className = "petal";
-        petal.style.left = Math.random() * 100 + "vw";
-        petal.style.animationDuration = 10 + Math.random() * 10 + "s";
-        petal.style.opacity = Math.random();
-        document.body.appendChild(petal);
-      }
-    }
   </script>
 </body>
 </html>
